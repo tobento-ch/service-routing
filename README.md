@@ -970,6 +970,8 @@ $container->set(MiddlewareDispatcherInterface::class, function($container) {
 
 $middlewareDispatcher = $container->get(MiddlewareDispatcherInterface::class);
 
+// add MethodOverride middleware if needed.
+$middlewareDispatcher->add(\Tobento\Service\Routing\Middleware\MethodOverride::class);
 // add PreRouting middleware if needed.
 $middlewareDispatcher->add(\Tobento\Service\Routing\Middleware\PreRouting::class);
 // ... more middlewares

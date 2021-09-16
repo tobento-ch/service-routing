@@ -1,0 +1,60 @@
+{
+    "name": "tobento/service-routing",
+    "type": "library",
+    "description": "A flexible PHP router.",
+    "keywords": [
+        "tobento",
+        "package",
+        "routing",
+        "router"
+	],
+    "homepage": "https://www.tobento.ch",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tobias Strub",
+            "email": "info@tobento.ch",
+            "homepage": "https://www.tobento.ch"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,    
+    "require": {
+        "php": ">=8.0",
+        "psr/http-message": "^1.0",
+        "psr/http-server-handler": "^1.0",
+        "psr/http-server-middleware": "^1.0",
+        "tobento/service-collection": "^1.0",
+        "tobento/service-support": "^1.0",
+        "tobento/service-uri": "^1.0",
+        "tobento/service-dater": "^1.0",
+        "tobento/service-autowire": "^1.0",
+        "tobento/service-middleware": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4.0",
+        "tobento/service-container": "^1.0",
+        "tobento/service-view": "^1.0",
+        "tobento/service-menu": "^1.0",
+        "nyholm/psr7": "^1.4",
+        "nyholm/psr7-server": "^1.0",
+        "laminas/laminas-httphandlerrunner": "^1.4"
+    },   
+    "autoload": {
+        "psr-4": {
+            "Tobento\\Service\\Routing\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tobento\\Service\\Routing\\Test\\": "tests",
+            "Tobento\\Demo\\Routing\\Simple\\": "demo/simple/src",
+            "Tobento\\Demo\\Routing\\Pro\\": "demo/pro/src"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --testdox --colors=always",
+        "psalm": "vendor/bin/psalm"
+    }
+}

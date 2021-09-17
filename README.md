@@ -224,7 +224,11 @@ $router->get('{slug}', 'BlogController::method')
                return null;
            }
            
-           $route['request_parameters']['id'] = $slug->getResourceId();
+           $requestParams = $route->getParameter('request_parameters', []);
+           $requestParams['id'] = $slug->getResourceId();
+           unset($requestParams['slug']);
+           $route->parameter('request_parameters', $requestParams);
+           
            return $route;
        });
        
@@ -237,7 +241,11 @@ $router->get('{slug}', 'ProductsController::method')
                return null;
            }
            
-           $route['request_parameters']['id'] = $slug->getResourceId();
+           $requestParams = $route->getParameter('request_parameters', []);
+           $requestParams['id'] = $slug->getResourceId();
+           unset($requestParams['slug']);
+           $route->parameter('request_parameters', $requestParams);
+           
            return $route;
        });       
 ```

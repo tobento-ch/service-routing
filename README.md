@@ -31,7 +31,6 @@ The Routing Service provides a flexible way to build routes for any PHP applicat
         - [Simple](#simple)
         - [With PSR-7 Response](#with-psr-7-response)
         - [With PSR-15 Middleware](#with-psr-15-middleware)
-    - [Localization Strategies](#localization-strategies)
 - [Credits](#credits)
 ___
 

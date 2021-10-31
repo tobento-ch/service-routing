@@ -7,8 +7,8 @@ use Tobento\Service\Container\Container;
 use Tobento\Service\View\View;
 use Tobento\Service\View\ViewInterface;
 use Tobento\Service\View\PhpRenderer;
-use Tobento\Service\View\Dirs;
-use Tobento\Service\View\Dir;
+use Tobento\Service\Dir\Dirs;
+use Tobento\Service\Dir\Dir;
 use Tobento\Service\View\Data;
 use Tobento\Service\View\Assets;
 use Tobento\Service\Menu\Menus;
@@ -23,9 +23,9 @@ $container->set(ViewInterface::class, function($container) {
         
     $view = new View(
         new PhpRenderer(
-            new Dirs([
+            new Dirs(
                 new Dir(__DIR__.'/../views/')
-            ])
+            )
         ),
         new Data(),
         new Assets(__DIR__.'/src/', URL_SRC)

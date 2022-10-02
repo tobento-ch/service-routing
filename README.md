@@ -454,6 +454,16 @@ $router->resource('products', ProductsController::class)
        );   
 ```
 
+**Adding additional route parameters for all actions:**
+
+```php
+$router->resource('products', ProductsController::class)
+       ->sharedParameter(
+           name: 'foo',
+           value: 'bar',
+       );   
+```
+
 ## Domain Routing
 
 ```php

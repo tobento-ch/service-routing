@@ -156,13 +156,23 @@ class RouteResource implements RouteResourceInterface
      * @return static $this
      */
     public function domain(string ...$domain): static
-    {        
-        $this->sharedParameters['domain'] = $domain;
-        return $this;
+    {
+        return $this->sharedParameter('domain', $domain);
     }
     
     /**
-     * Add an parameter for an action
+     * Set a base url for all actions.
+     *    
+     * @param string $baseUrl
+     * @return static $this
+     */
+    public function baseUrl(string $baseUrl): static
+    {
+        return $this->sharedParameter('base_url', $baseUrl);
+    }
+    
+    /**
+     * Add a parameter for an action.
      *
      * @param string $action The action name such as 'index'
      * @param string $name The name
@@ -172,6 +182,19 @@ class RouteResource implements RouteResourceInterface
     public function parameter(string $action, string $name, mixed $value): static
     {        
         $this->parameters[$action][$name] = $value;
+        return $this;
+    }
+    
+    /**
+     * Add a shared parameter for all actions.
+     *
+     * @param string $name The name
+     * @param mixed $value The value
+     * @return static $this
+     */
+    public function sharedParameter(string $name, mixed $value): static
+    {        
+        $this->sharedParameters[$name] = $value;
         return $this;
     }
 
@@ -258,7 +281,7 @@ class RouteResource implements RouteResourceInterface
             foreach($this->middleware as [$middleware, $actions])
             {
                 if (empty($actions)) {
-                    foreach($this->getActions() as $name => $parameters)
+                    foreach(array_keys($this->getActions()) as $name)
                     {
                         $this->middlewareMapped[$name] = $middleware;    
                     }

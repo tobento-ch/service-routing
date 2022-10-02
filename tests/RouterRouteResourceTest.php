@@ -354,6 +354,31 @@ class RouterRouteResourceTest extends TestCase
         );
     }
     
+    public function testSharedParameterMethod()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->resource('products', ProductsResource::class)
+               ->sharedParameter(
+                   name: 'foo',
+                   value: 'bar',
+               );
+                
+        $route = $router->getRoute('products.index');
+        
+        $this->assertSame(
+            'bar',
+            $route->getParameter('foo')
+        );
+        
+        $route = $router->getRoute('products.show');
+        
+        $this->assertSame(
+            'bar',
+            $route->getParameter('foo')
+        );
+    }    
+    
     public function testDomainMethod()
     {
         $router = $this->createRouter('GET', 'products');
@@ -368,6 +393,21 @@ class RouterRouteResourceTest extends TestCase
             $route->getParameter('domain')
         );
     }
+    
+    public function testBaseUrlMethod()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->resource('products', ProductsResource::class)
+               ->baseUrl('sub.example.com');
+                
+        $route = $router->getRoute('products.index');
+        
+        $this->assertSame(
+            'sub.example.com',
+            $route->getParameter('base_url')
+        );
+    }    
     
     public function testGroupResource()
     {

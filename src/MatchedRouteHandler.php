@@ -32,12 +32,12 @@ class MatchedRouteHandler implements MatchedRouteHandlerInterface
      */    
     protected Autowire $autowire;
     
-	/**
-	 * Create a new MatchedRouteHandler
-	 *
-	 * @param ContainerInterface $container
-	 */	
-	public function __construct(
+    /**
+     * Create a new MatchedRouteHandler
+     *
+     * @param ContainerInterface $container
+     */    
+    public function __construct(
         protected ContainerInterface $container
     ) {
         $this->autowire = new Autowire($container);

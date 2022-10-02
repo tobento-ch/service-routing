@@ -33,13 +33,13 @@ class RouteHandler implements RouteHandlerInterface
      */    
     protected Autowire $autowire;
     
-	/**
-	 * Create a new RouteHandler
-	 *
-	 * @param ContainerInterface $container
+    /**
+     * Create a new RouteHandler
+     *
+     * @param ContainerInterface $container
      * @param null|Closure $containerSync
-	 */	
-	public function __construct(
+     */    
+    public function __construct(
         protected ContainerInterface $container,
         protected null|Closure $containerSync = null,
     ) {
@@ -54,9 +54,9 @@ class RouteHandler implements RouteHandlerInterface
      * @return mixed The return value of the handler called.
      */    
     public function handle(RouteInterface $route, null|ServerRequestInterface $request = null): mixed
-    {		
+    {        
         // Handle middleware if any.
-		if (is_array($route->getParameter('middleware')))
+        if (is_array($route->getParameter('middleware')))
         {            
             if (
                 ! $this->container->has(MiddlewareDispatcherInterface::class)
@@ -72,14 +72,14 @@ class RouteHandler implements RouteHandlerInterface
             $middlewareDispatcher->add([MiddlewareRouteHandler::class, 'route' => $route]);
 
             $response = $middlewareDispatcher->handle($request);
-						
+                        
             // sync container for autowiring.            
             if (!is_null($this->containerSync)) {
                 call_user_func_array($this->containerSync, [$this->container, $request, $response]);    
             }
             
             return $response;
-		}
+        }
                 
         return $this->callRouteHandler($route, $request);
     }
@@ -98,8 +98,8 @@ class RouteHandler implements RouteHandlerInterface
         
         if (is_array($handler) && isset($handler[2]) && is_array($handler[2]))
         {
-			$requestParams = array_merge($requestParams, $handler[2]);
-		}
+            $requestParams = array_merge($requestParams, $handler[2]);
+        }
         
         if (!is_null($request)) {
             $requestParams['request'] = $request;

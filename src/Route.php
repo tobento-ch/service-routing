@@ -19,7 +19,9 @@ use Tobento\Service\Support\Arrayable;
  * Route
  */
 class Route implements RouteInterface, Arrayable
-{    
+{
+    use RouteI18Methods;
+    
     /**
      * @var array The route parameters.
      */
@@ -124,18 +126,6 @@ class Route implements RouteInterface, Arrayable
     }
     
     /**
-     * Set a route domain.
-     *
-     * @param string $domain
-     * @return static $this
-     */
-    public function domain(string ...$domain): static
-    {
-        $this->parameters['domain'] = $domain;
-        return $this;
-    }    
-    
-    /**
      * Set the locale.
      *    
      * @param string $locale The default or current locale.
@@ -209,68 +199,14 @@ class Route implements RouteInterface, Arrayable
     }
     
     /**
-     * The locale to omit on uri.
-     *
-     * @param string $localeOmit
-     * @return static $this
-     */
-    public function localeOmit(string $localeOmit): static
-    {
-        $this->parameters['locale_omit'] = $localeOmit;
-        
-        return $this;
-    }    
-    
-    /**
-     * Set the locale name.
-     *    
-     * @param string $localeName The locale name in uri.
-     * @return static $this
-     */
-    public function localeName(string $localeName): static
-    {
-        $this->parameters['locale_name'] = $localeName;
-        
-        return $this;
-    }    
-    
-    /**
-     * Set the locale fallbacks. ['de' => 'en']
-     *    
-     * @param array<string, string> $localeFallbacks
-     * @return static $this
-     */
-    public function localeFallbacks(array $localeFallbacks): static
-    {
-        $this->parameters['locale_fallbacks'] = $localeFallbacks;
-        
-        return $this;
-    }
-
-    /**
-     * Set locale base urls for the given route.
-     *    
-     * @param array<string, string> $baseUrls ['en' => 'en.example.com']
-     * @return static $this
-     */
-    public function localeBaseUrls(array $baseUrls): static
-    {        
-        $this->parameters['locale_base_urls'] = $baseUrls;
-        
-        return $this;
-    }    
-    
-    /**
      * Translate an uri key.
      *    
      * @param string $key
      * @param array<string, string> $translations $translations
      * @return static $this
      */
-    public function trans(
-        string $key,
-        array $translations,
-    ): static {
+    public function trans(string $key, array $translations): static
+    {
         $this->parameters['trans'][$key] = $translations;
         
         if (!isset($this->parameters['locales'])) {

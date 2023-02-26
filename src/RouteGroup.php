@@ -21,6 +21,7 @@ use Closure;
 class RouteGroup implements RouteGroupInterface
 {
     use RouteMethods;
+    use RouteI18Methods;
     
     /**
      * @var array<int, RouteInterface> The routes.
@@ -80,19 +81,7 @@ class RouteGroup implements RouteGroupInterface
     {        
         $this->parameters['constraints'][$key] = $constraint;
         return $this;
-    }    
-    
-    /**
-     * Set a route domain.
-     *
-     * @param string $domain
-     * @return static $this
-     */
-    public function domain(string ...$domain): static
-    {
-        $this->parameters['domain'] = $domain;
-        return $this;
-    }    
+    }
 
     /**
      * Set a base url for the given route
@@ -132,56 +121,17 @@ class RouteGroup implements RouteGroupInterface
     }
     
     /**
-     * The locale to omit on uri.
-     *
-     * @param string $localeOmit
-     * @return static $this
-     */
-    public function localeOmit(string $localeOmit): static
-    {
-        $this->parameters['locale_omit'] = $localeOmit;
-        
-        return $this;
-    }    
-    
-    /**
-     * Set the locale name.
+     * Translate an uri key.
      *    
-     * @param string $localeName The locale name in uri.
+     * @param string $key
+     * @param array<string, string> $translations $translations
      * @return static $this
      */
-    public function localeName(string $localeName): static
+    public function trans(string $key, array $translations): static
     {
-        $this->parameters['locale_name'] = $localeName;
-        
-        return $this;
-    }    
-    
-    /**
-     * Set the locale fallbacks. ['de' => 'en']
-     *    
-     * @param array<string, string> $localeFallbacks
-     * @return static $this
-     */
-    public function localeFallbacks(array $localeFallbacks): static
-    {
-        $this->parameters['locale_fallbacks'] = $localeFallbacks;
-        
+        $this->parameters['trans'][$key] = $translations;
         return $this;
     }
-
-    /**
-     * Set locale base urls for the given route.
-     *    
-     * @param array<string, string> $baseUrls ['en' => 'en.example.com']
-     * @return static $this
-     */
-    public function localeBaseUrls(array $baseUrls): static
-    {        
-        $this->parameters['locale_base_urls'] = $baseUrls;
-        
-        return $this;
-    }    
     
     /**
      * Add a parameter

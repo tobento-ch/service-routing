@@ -16,7 +16,7 @@ namespace Tobento\Service\Routing;
 /**
  * RouteInterface
  */
-interface RouteInterface
+interface RouteInterface extends RouteI18MethodsInterface
 {
     /**
      * Set a route name
@@ -33,7 +33,49 @@ interface RouteInterface
      * @return static $this
      */
     public function middleware(mixed ...$middleware): static;
-        
+    
+    /**
+     * Mark route as signed.
+     *
+     * @param string $name
+     * @param bool $validate True if to validate signed route.
+     * @return static $this
+     */
+    public function signed(string $name, bool $validate = true): static;
+    
+    /**
+     * Add a route uri constraint
+     *
+     * @param string $key The constraint key such as 'id' 
+     * @param mixed $constraint
+     * @return static $this
+     */
+    public function where(string $key, mixed $constraint): static;
+    
+    /**
+     * Set a route uri query constraint
+     *
+     * @param mixed $constraint
+     * @return static $this
+     */
+    public function query(mixed $constraint): static;
+    
+    /**
+     * Set a callback to check if a route matches
+     *
+     * @param callable $matches function(RouteInterface $route): null|RouteInterface { return null; }
+     * @return static $this
+     */
+    public function matches(callable $matches): static;
+    
+    /**
+     * Set a base url for the given route
+     *    
+     * @param string $baseUrl
+     * @return static $this
+     */
+    public function baseUrl(string $baseUrl): static;
+    
     /**
      * Add a parameter.
      *

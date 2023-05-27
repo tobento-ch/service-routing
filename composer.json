@@ -35,8 +35,6 @@
         "phpunit/phpunit": "^9.5",
         "vimeo/psalm": "^4.0",
         "tobento/service-container": "^1.0",
-        "tobento/service-view": "^1.0",
-        "tobento/service-menu": "^1.0",
         "nyholm/psr7": "^1.4",
         "nyholm/psr7-server": "^1.0",
         "laminas/laminas-httphandlerrunner": "^1.4"

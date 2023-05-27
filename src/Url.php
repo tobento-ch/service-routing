@@ -21,9 +21,14 @@ use Stringable;
 class Url implements UrlInterface, Stringable
 {
     /**
-     * @var string The route uri
+     * @var RouteInterface $route
      */
-    protected string $uri;
+    protected RouteInterface $route;
+    
+    /**
+     * @var RouteInterface
+     */
+    protected RouteInterface $defaultRoute;
     
     /**
      * @var null|array<mixed>
@@ -36,11 +41,6 @@ class Url implements UrlInterface, Stringable
     protected null|string $locale = null;
     
     /**
-     * @var null|string
-     */
-    protected null|string $baseUrl = null;    
-    
-    /**
      * Create a new Route
      *
      * @param RouterInterface $router
@@ -49,19 +49,30 @@ class Url implements UrlInterface, Stringable
      */        
     public function __construct(
         protected RouterInterface $router,
-        protected string $name,
+        string $name,
         protected array $parameters,
     ) {
         $route = $this->router->getRoute($name);
         
-        if (is_null($route))
-        {
+        if (is_null($route)) {
             throw new UrlException(
                 'Unable to generate url from undefined route name ['.$name.']'
             );
         }
         
-        $this->uri = $route->getUri();
+        $this->defaultRoute = $route;
+        
+        // handle domains:
+        if (!empty($route->getParameter('domains'))) {
+            
+            $requestData = $router->getRequestData();
+            
+            if (!is_null($requestData->domain())) {
+                $route = $route->forDomain($requestData->domain());
+            }
+        }
+        
+        $this->route = $route;
     }
 
     /**
@@ -72,6 +83,41 @@ class Url implements UrlInterface, Stringable
     public function get(): string
     {        
         return $this->__toString();
+    }
+
+    /**
+     * Returns a new instance with the specified domain.
+     *    
+     * @param string $domain
+     * @return static
+     */
+    public function domain(string $domain): static
+    {
+        $new = clone $this;
+        $new->route = $this->defaultRoute->forDomain($domain);
+        return $new;
+    }
+    
+    /**
+     * Returns all domained urls.
+     *
+     * @return array
+     */
+    public function domained(): array
+    {
+        $domains = $this->route->getParameter('domains');
+        
+        if (!is_array($domains) || empty($domains)) {
+            return [];
+        }
+        
+        $domained = [];
+        
+        foreach(array_keys($domains) as $domain) {
+            $domained[$domain] = (string)$this->domain($domain);
+        }
+        
+        return $domained;
     }
     
     /**
@@ -108,13 +154,11 @@ class Url implements UrlInterface, Stringable
      */
     public function translated(array $locales = []): array
     {
-        $route = $this->router->getRoute($this->name);
-        
-        if (empty($locales) && is_array($route->getParameter('locales'))) {
-            $locales = $route->getParameter('locales');
+        if (empty($locales) && is_array($this->route->getParameter('locales'))) {
+            $locales = $this->route->getParameter('locales');
         }
                 
-        $translations = $route->getParameter('trans');
+        $translations = $this->route->getParameter('trans');
         
         if (
             empty($locales)
@@ -125,8 +169,8 @@ class Url implements UrlInterface, Stringable
             $locales = array_keys($firstTranslation);
         }
         
-        if (empty($locales) && is_string($route->getParameter('locale'))) {
-            $locales[] = $route->getParameter('locale');
+        if (empty($locales) && is_string($this->route->getParameter('locale'))) {
+            $locales[] = $this->route->getParameter('locale');
         }
         
         $translated = [];
@@ -151,11 +195,9 @@ class Url implements UrlInterface, Stringable
      */
     public function locale(null|string $locale = null): static
     {
-        $route = $this->router->getRoute($this->name);
-        $localeName = $route->getParameter('locale_name') ?? 'locale';
-        $currentLocale = $route->getParameter('locale');
-        $localeOmit = $route->getParameter('locale_omit') ?? null;
-        $localeBaseUrls = $route->getParameter('locale_base_urls') ?? [];
+        $localeName = $this->route->getParameter('locale_name') ?? 'locale';
+        $currentLocale = $this->route->getParameter('locale');
+        $localeOmit = $this->route->getParameter('locale_omit') ?? null;
         
         if (is_null($locale)) {
             $locale = $currentLocale ?: $localeOmit;
@@ -167,27 +209,16 @@ class Url implements UrlInterface, Stringable
         
         $this->locale = $locale;
         
-        // store previous base url
-        if (is_null($this->baseUrl)) {
-            $this->baseUrl = $this->router->getUrlGenerator()->getBaseUrl($this->uri) 
-                ?: $this->router->getUrlGenerator()->getUrlBase();
-        }
-        
-        // do we have a locale url.
-        if (is_array($localeBaseUrls) && isset($localeBaseUrls[$locale])) {
-            $this->router->getUrlGenerator()->addBaseUrl($this->uri, $localeBaseUrls[$locale]);
-        }
-        
         // handle translations if any.
-        if ($route->hasParameter('trans'))
+        if ($this->route->hasParameter('trans'))
         {
-            foreach($route->getParameter('trans') as $key => $translations)
+            foreach($this->route->getParameter('trans') as $key => $translations)
             {                    
                 if (is_array($translations))
                 {
                     if (!isset($translations[$locale]))
                     {
-                        $fallbacks = $route->getParameter('locale_fallbacks');
+                        $fallbacks = $this->route->getParameter('locale_fallbacks');
                         
                         if (
                             is_array($fallbacks)
@@ -198,7 +229,7 @@ class Url implements UrlInterface, Stringable
                             continue;
                         }
                         
-                        throw new TranslationException($route, 'Unable to generate url for locale.');
+                        throw new TranslationException($this->route, 'Unable to generate url for locale.');
                     }
                     
                     $this->parameters[$key] ??= $translations[$locale];
@@ -212,8 +243,8 @@ class Url implements UrlInterface, Stringable
         }
         
         if (
-            str_contains($this->uri, '{'.$localeName.'}')
-            || str_contains($this->uri, '{?'.$localeName.'}')
+            str_contains($this->route->getUri(), '{'.$localeName.'}')
+            || str_contains($this->route->getUri(), '{?'.$localeName.'}')
         ) {
             $this->parameters[$localeName] = $locale;
         }
@@ -228,28 +259,48 @@ class Url implements UrlInterface, Stringable
      */
     public function __toString(): string
     {
+        // handle domain:
+        $baseUrl = null;
+        
+        if (is_string($this->route->getParameter('domain'))) {
+
+            if (is_string($this->route->getParameter('domain_uri'))) {
+                $baseUrl = $this->route->getParameter('domain_uri');
+            } else {
+                $scheme = str_starts_with($this->router->getUrlGenerator()->getUrlBase(), 'https://')
+                    ? 'https://'
+                    : 'http://';
+
+                $domain = $this->route->getParameter('domain');
+                
+                $baseUrl = $scheme.$domain;
+            }
+        }
+        
+        // handle locale:
         if (is_null($this->locale)) {
-            $route = $this->router->getRoute($this->name);
-            $localeName = $route->getParameter('locale_name') ?? 'locale';
+            $localeName = $this->route->getParameter('locale_name') ?? 'locale';
             $this->locale($this->parameters[$localeName] ?? null);    
         }
         
+        // generate signed url if specified:
         if (!is_null($this->sign)) {
             [$expiration, $withQuery] = $this->sign;
             
             $url = $this->router->getUrlGenerator()->generateSigned(
-                $this->uri,
+                $this->route->getUri(),
                 $this->parameters,
                 $expiration,
-                $withQuery
+                $withQuery,
+                $baseUrl,
             );
-                 
+        // otherwise generate url:
         } else {
-            $url = $this->router->getUrlGenerator()->generate($this->uri, $this->parameters);    
-        }
-            
-        if ($this->baseUrl) {
-            $this->router->getUrlGenerator()->addBaseUrl($this->uri, $this->baseUrl);
+            $url = $this->router->getUrlGenerator()->generate(
+                $this->route->getUri(),
+                $this->parameters,
+                $baseUrl,
+            );    
         }
         
         // clear as non-translated parameters are prioritized.
@@ -257,5 +308,5 @@ class Url implements UrlInterface, Stringable
         $this->locale = null;
         
         return $url;
-    }    
+    }
 }

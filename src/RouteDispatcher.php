@@ -124,17 +124,27 @@ class RouteDispatcher implements RouteDispatcherInterface
      * @return null|RouteInterface The route on success, otherwise null
      */    
     protected function routeMatches(RequestDataInterface $requestData, RouteInterface $route): null|RouteInterface
-    {        
-        if (! $route->hasParameter('query')) {
-            $route->parameter('query', '*');
+    {
+        // handle domain:
+        if (!empty($route->getParameter('domains'))) {
+            
+            if (is_null($requestData->domain())) {
+                return null;
+            }
+            
+            $route = $route->forDomain($requestData->domain());
         }
         
-        // domain check        
+        // verify domain:
         if (
-            is_array($route->getParameter('domain'))
-            && !in_array($requestData->domain(), $route->getParameter('domain'))
+            is_string($route->getParameter('domain'))
+            && $route->getParameter('domain') !== $requestData->domain()
         ) {
             return null;
+        }
+
+        if (! $route->hasParameter('query')) {
+            $route->parameter('query', '*');
         }
         
         // parse method

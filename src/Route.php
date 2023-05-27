@@ -25,7 +25,7 @@ class Route implements RouteInterface, Arrayable
     /**
      * @var array The route parameters.
      */
-    protected array $parameters = []; 
+    protected array $parameters = [];
     
     /**
      * Create a new Route
@@ -34,12 +34,14 @@ class Route implements RouteInterface, Arrayable
      * @param string $method The method such as 'GET', 'GET|POST', '*'
      * @param string $uri The route uri such as 'foo/{id}'
      * @param mixed $handler The handler if route is matching.
+     * @param null|DomainsInterface $domains
      */        
     public function __construct(
         protected UrlGeneratorInterface $urlGenerator,
         protected string $method,
         protected string $uri,
-        protected mixed $handler
+        protected mixed $handler,
+        protected null|DomainsInterface $domains = null,
     ) {}
 
     /**
@@ -53,7 +55,72 @@ class Route implements RouteInterface, Arrayable
         $this->parameters['name'] = $name;
         
         return $this;
-    } 
+    }
+    
+    /**
+     * Add a route domain.
+     *
+     * @param string $domain
+     * @param null|callable $route
+     * @return static $this
+     */
+    public function domain(string $domain, null|callable $route = null): static
+    {
+        $domainUri = null;
+        
+        if ($this->domains?->has($domain)) {
+            $domainUri = $this->domains->get($domain)->uri();
+            $domain = $this->domains->get($domain)->domain();
+        }
+                
+        $this->parameters['domains'][$domain] = $route;
+        
+        // first domain specified is domain:
+        if (!isset($this->parameters['domain'])) {
+            $this->parameters['domain'] = $domain;
+            
+            if ($domainUri) {
+                $this->parameters['domain_uri'] = $domainUri;
+            }
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Returns a new instance for the specified domain.
+     *
+     * @param string $domain
+     * @return static
+     */
+    public function forDomain(string $domain): static
+    {
+        $domainUri = null;
+
+        if ($this->domains?->has($domain)) {
+            $domainUri = $this->domains->get($domain)->uri();
+            $domain = $this->domains->get($domain)->domain();
+        }
+        
+        $newRoute = clone $this;
+        
+        if (
+            isset($this->parameters['domains'])
+            && is_array($this->parameters['domains'])
+            && array_key_exists($domain, $this->parameters['domains']))
+        {
+            $domainRouteHandler = $this->parameters['domains'][$domain];
+            
+            $newRoute->parameter('domain', $domain);
+            $newRoute->parameter('domain_uri', $domainUri);
+            
+            if (!is_null($domainRouteHandler)) {
+                $domainRouteHandler($newRoute);
+            }
+        }
+        
+        return $newRoute;
+    }
     
     /**
      * Mark route as signed.
@@ -173,7 +240,7 @@ class Route implements RouteInterface, Arrayable
             if (! $route->hasParameter('locale') && $route->hasParameter('locale_omit')) {
                 $route->parameter('locale', $route->getParameter('locale_omit'));
             }
-                                    
+            
             if (! $route->hasParameter('locale')) {
                 throw new TranslationException($this, 'No locale detected for translation');
             }
@@ -181,7 +248,7 @@ class Route implements RouteInterface, Arrayable
             // update
             $requestParams[$localeName] = $route->getParameter('locale');
             $route->parameter('request_parameters', $requestParams);
-                
+            
             // check for locales.
             if (
                 $route->hasParameter('locales')
@@ -193,7 +260,7 @@ class Route implements RouteInterface, Arrayable
             }
             
             return $route;
-        });
+        }, 'locales');
         
         return $this;
     }
@@ -232,12 +299,12 @@ class Route implements RouteInterface, Arrayable
                 ) {
                     return $route;                    
                 }
-
+                
                 return null;
             }
 
             return $translations[$locale] === $trans ? $route : null;
-        });
+        }, 'trans');
         
         return $this;
     }    
@@ -246,10 +313,16 @@ class Route implements RouteInterface, Arrayable
      * Set a callback to check if a route matches
      *
      * @param callable $matches function(RouteInterface $route): null|RouteInterface { return null; }
+     * @param null|string $key A unique key.
      * @return static $this
      */
-    public function matches(callable $matches): static
-    {        
+    public function matches(callable $matches, null|string $key = null): static
+    {
+        if (!is_null($key)) {
+            $this->parameters['matches'][$key] = $matches;
+            return $this;
+        }
+        
         $this->parameters['matches'][] = $matches;
         return $this;
     }

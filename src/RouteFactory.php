@@ -21,6 +21,15 @@ use Closure;
 class RouteFactory implements RouteFactoryInterface
 {
     /**
+     * Create a new RouteFactory
+     *
+     * @param null|DomainsInterface $domains
+     */        
+    public function __construct(
+        protected null|DomainsInterface $domains = null,
+    ) {}
+    
+    /**
      * Create a new Route
      *
      * @param RouterInterface $router
@@ -39,7 +48,8 @@ class RouteFactory implements RouteFactoryInterface
             $router->getUrlGenerator(),
             $method,
             $uri,
-            $handler
+            $handler,
+            $this->domains
         );
     }
     

@@ -64,9 +64,10 @@ interface RouteInterface extends RouteI18MethodsInterface
      * Set a callback to check if a route matches
      *
      * @param callable $matches function(RouteInterface $route): null|RouteInterface { return null; }
+     * @param null|string $key A unique key.
      * @return static $this
      */
-    public function matches(callable $matches): static;
+    public function matches(callable $matches, null|string $key = null): static;
     
     /**
      * Set a base url for the given route

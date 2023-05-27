@@ -47,18 +47,17 @@ class UrlGenerator implements UrlGeneratorInterface
      *
      * @param string $uri The route uri such as 'foo/{bar}'
      * @param array $parameters The paramters to build the url.
-     *
-     * @throws UrlException
-     *
+     * @param null|string $baseUrl
      * @return string The generated url.
+     * @throws UrlException
      */    
-    public function generate(string $uri, array $parameters = []): string
+    public function generate(string $uri, array $parameters = [], null|string $baseUrl = null): string
     {
         $uriPath = new UriPath(str_replace('?', '!', $uri));
         
         // if uri is '', just return.
         if (empty($uriPath->getSegments())) {
-            return $this->buildFullUrl($uri, '');
+            return $this->buildFullUrl($uri, '', $baseUrl);
         }
         
         // replace parameters.
@@ -118,7 +117,7 @@ class UrlGenerator implements UrlGeneratorInterface
             $resolvedUri = $uriPath->get();
         }
         
-        return $this->buildFullUrl($uri, $resolvedUri);
+        return $this->buildFullUrl($uri, $resolvedUri, $baseUrl);
     }
 
     /**
@@ -128,13 +127,15 @@ class UrlGenerator implements UrlGeneratorInterface
      * @param array $parameters The paramters to build the url.
      * @param mixed $expiration The expiration
      * @param bool $withQuery
+     * @param null|string $baseUrl
      * @return string The generated url.
      */    
     public function generateSigned(
         string $uri,
         array $parameters = [],
         mixed $expiration = null,
-        bool $withQuery = false
+        bool $withQuery = false,
+        null|string $baseUrl = null,
     ): string {
         
         $signatureUri = '/{?'.$this->signatureName.'}/{?'.$this->expiresName.'}';
@@ -160,15 +161,15 @@ class UrlGenerator implements UrlGeneratorInterface
             $df = new DateFormatter();
             $date = $df->toDateTime($expiration);
             $parameters[$this->expiresName] = $date->getTimestamp();
-        }  
+        }
 
         $parameters[$this->signatureName] = '';
 
         $signature = hash_hmac('sha256', $this->generate($uri, $parameters), $this->signatureKey);
         
         $parameters[$this->signatureName] = $signature;
-                
-        return $this->generate($uri, $parameters);
+        
+        return $this->generate($uri, $parameters, $baseUrl);
     }
 
     /**
@@ -322,11 +323,16 @@ class UrlGenerator implements UrlGeneratorInterface
      *
      * @param string $uri The uri such as 'foo/{id}'
      * @param string $resolvedUri The resolved uri such as 'foo/5'
+     * @param null|string $baseUrl
      * @return string The generated url.
      */    
-    protected function buildFullUrl(string $uri, string $resolvedUri): string
-    {        
-        $url = $this->baseUrls[$uri] ?? $this->urlBase;
+    protected function buildFullUrl(string $uri, string $resolvedUri, null|string $baseUrl = null): string
+    {
+        if (!is_null($baseUrl)) {
+            $url = $baseUrl;
+        } else {
+            $url = $this->baseUrls[$uri] ?? $this->urlBase;
+        }
         
         //append $resolvedUri if not empty.
         if (!empty($resolvedUri)) {

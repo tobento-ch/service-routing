@@ -19,14 +19,15 @@ namespace Tobento\Service\Routing;
 trait RouteI18Methods
 {
     /**
-     * Set a route domain.
+     * Add a route domain.
      *
      * @param string $domain
+     * @param null|callable $route
      * @return static $this
      */
-    public function domain(string ...$domain): static
+    public function domain(string $domain, null|callable $route = null): static
     {
-        $this->parameters['domain'] = $domain;
+        $this->parameters['domains'][$domain] = $route;
         return $this;
     }
     
@@ -87,18 +88,6 @@ trait RouteI18Methods
     public function localeFallbacks(array $localeFallbacks): static
     {
         $this->parameters['locale_fallbacks'] = $localeFallbacks;
-        return $this;
-    }
-
-    /**
-     * Set locale base urls for the given route.
-     *    
-     * @param array<string, string> $baseUrls ['en' => 'en.example.com']
-     * @return static $this
-     */
-    public function localeBaseUrls(array $baseUrls): static
-    {        
-        $this->parameters['locale_base_urls'] = $baseUrls;
         return $this;
     }
     

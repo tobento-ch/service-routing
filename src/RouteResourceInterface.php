@@ -30,6 +30,14 @@ interface RouteResourceInterface
     public function action(string $action, string $method, string $uri = '', array $parameters = []): static;
     
     /**
+     * Set where constraint.
+     *
+     * @param string $where
+     * @return static $this
+     */
+    public function where(string $where): static;
+    
+    /**
      * Set the actions to route only
      *    
      * @param array<int, string> $actions The actions ['create']
@@ -55,12 +63,13 @@ interface RouteResourceInterface
     public function middleware(array $actions, mixed ...$middleware): static;
     
     /**
-     * Set a domain.
+     * Add a route domain.
      *
      * @param string $domain
+     * @param null|callable $route
      * @return static $this
      */
-    public function domain(string ...$domain): static;
+    public function domain(string $domain, null|callable $route = null): static;
     
     /**
      * Set a base url for all actions.

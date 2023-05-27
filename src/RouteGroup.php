@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tobento\Service\Routing;
 
+use InvalidArgumentException;
 use Closure;
 
 /**
@@ -41,7 +42,7 @@ class RouteGroup implements RouteGroupInterface
     /**
      * @var array<int, mixed> The route methods to call.
      */
-    protected array $methods = [];    
+    protected array $methods = [];
     
     /**
      * Create a new RouteGroup
@@ -93,6 +94,30 @@ class RouteGroup implements RouteGroupInterface
     {        
         $this->methods[] = ['baseUrl', 'base_url', [$baseUrl]];
         return $this;
+    }
+    
+    /**
+     * Add a route domain.
+     *
+     * @param string $domain
+     * @param null|callable $route
+     * @return static $this
+     */
+    public function domain(string $domain, null|callable $route = null): static
+    {
+        $this->methods[] = ['domain', 'domains', [$domain, $route]];
+        return $this;
+    }
+    
+    /**
+     * Returns a new instance for the specified domain.
+     *
+     * @param string $domain
+     * @return static
+     */
+    public function forDomain(string $domain): static
+    {
+        throw new InvalidArgumentException('Unsupported by group');
     }
  
     /**
@@ -250,10 +275,13 @@ class RouteGroup implements RouteGroupInterface
                 }
             }
             
+            $hasntParameters = [];
+            
             foreach($this->methods as [$method, $name, $params])
             {
-                if (! $route->hasParameter($name)) {
+                if (! $route->hasParameter($name) || isset($hasntParameters[$name])) {
                     $route->$method(...$params);
+                    $hasntParameters[$name] = 1;
                 }
             }
         }

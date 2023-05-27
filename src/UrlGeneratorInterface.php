@@ -25,9 +25,11 @@ interface UrlGeneratorInterface
      *
      * @param string $uri The route uri such as 'foo/{bar}'
      * @param array $parameters The paramters to build the url.
+     * @param null|string $baseUrl
      * @return string The generated url.
+     * @throws UrlException
      */    
-    public function generate(string $uri, array $parameters = []): string;
+    public function generate(string $uri, array $parameters = [], null|string $baseUrl = null): string;
 
     /**
      * Generates the signed url.
@@ -36,13 +38,15 @@ interface UrlGeneratorInterface
      * @param array $parameters The paramters to build the url.
      * @param mixed $expiration The expiration
      * @param bool $withQuery
+     * @param null|string $baseUrl
      * @return string The generated url.
      */    
     public function generateSigned(
         string $uri,
         array $parameters = [],
         mixed $expiration = null,
-        bool $withQuery = false
+        bool $withQuery = false,
+        null|string $baseUrl = null,
     ): string;
 
     /**

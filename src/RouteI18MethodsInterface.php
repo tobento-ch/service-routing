@@ -19,12 +19,21 @@ namespace Tobento\Service\Routing;
 interface RouteI18MethodsInterface
 {
     /**
-     * Set a route domain.
+     * Add a route domain.
      *
      * @param string $domain
+     * @param null|callable $route
      * @return static $this
      */
-    public function domain(string ...$domain): static;
+    public function domain(string $domain, null|callable $route = null): static;
+    
+    /**
+     * Returns a new instance for the specified domain.
+     *
+     * @param string $domain
+     * @return static
+     */
+    public function forDomain(string $domain): static;
     
     /**
      * Set the locale.
@@ -65,14 +74,6 @@ interface RouteI18MethodsInterface
      * @return static $this
      */
     public function localeFallbacks(array $localeFallbacks): static;
-    
-    /**
-     * Set locale base urls for the given route.
-     *    
-     * @param array<string, string> $baseUrls ['en' => 'en.example.com']
-     * @return static $this
-     */
-    public function localeBaseUrls(array $baseUrls): static;
     
     /**
      * Translate an uri key.

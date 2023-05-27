@@ -53,7 +53,12 @@ class RouteResource implements RouteResourceInterface
     /**
      * @var array The parameters.
      */
-    protected array $sharedParameters = [];    
+    protected array $sharedParameters = [];
+    
+    /**
+     * @var array<int, mixed> The route methods to call.
+     */
+    protected array $methods = [];
     
     /**
      * Create a new RouteResource
@@ -68,7 +73,7 @@ class RouteResource implements RouteResourceInterface
         protected RouterInterface $router,
         protected string $name,
         protected string $controller,
-        string $placeholder = 'id',
+        protected string $placeholder = 'id',
         ?string $where = '[0-9]+'
     ){        
         // placeholder constraint
@@ -107,6 +112,18 @@ class RouteResource implements RouteResourceInterface
         
         $this->actions[$action] = [$method, $uri, $name, $parameters];
         
+        return $this;
+    }
+
+    /**
+     * Set where constraint.
+     *
+     * @param string $where
+     * @return static $this
+     */
+    public function where(string $where): static
+    {
+        $this->sharedParameters['constraints'] = [$this->placeholder => $where];
         return $this;
     }
     
@@ -148,16 +165,18 @@ class RouteResource implements RouteResourceInterface
         $this->middleware[] = [$middleware, $actions];
         return $this;
     }
-
+    
     /**
-     * Set a domain.
+     * Add a route domain.
      *
      * @param string $domain
+     * @param null|callable $route
      * @return static $this
      */
-    public function domain(string ...$domain): static
+    public function domain(string $domain, null|callable $route = null): static
     {
-        return $this->sharedParameter('domain', $domain);
+        $this->methods[] = ['domain', 'domains', [$domain, $route]];
+        return $this;
     }
     
     /**
@@ -249,6 +268,11 @@ class RouteResource implements RouteResourceInterface
             foreach($this->sharedParameters as $name => $value) {
                 $route->parameter($name, $value);
             }
+            
+            // shared methods
+            foreach($this->methods as [$method, $name, $params]) {
+                $route->$method(...$params);
+            }            
             
             $routes[] = $route;
         }

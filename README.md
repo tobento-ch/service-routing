@@ -19,6 +19,9 @@ The Routing Service provides a flexible way to build routes for any PHP applicat
     - [Group Routing](#group-routing)
     - [Resource Routing](#resource-routing)
     - [Domain Routing](#domain-routing)
+        - [Domain Routes](#domain-routes)
+        - [Domain Url Generation](#domain-url-generation)
+        - [Managing Domains](#managing-domains)
     - [Signed Routing](#signed-routing)
         - [Signed Routes](#signed-routes)
         - [Signed Url Generation](#signed-url-generation)
@@ -408,6 +411,13 @@ $router->resource('products', ProductsController::class)
        ->except(['delete']);
 ```
 
+**You might change the default where constraint:**
+
+```php
+$router->resource('products', ProductsController::class)
+       ->where('[a-z0-9]+'); // default is [0-9]+
+```
+
 **Adding new or overwriting existing actions:**
 
 ```php
@@ -466,19 +476,133 @@ $router->resource('products', ProductsController::class)
 
 ## Domain Routing
 
+### Domain Routes
+
+```php
+// route:
+$router->get('blog', [Controller::class, 'method'])
+       ->domain('example.com');
+
+// group:
+$router->group('api', function($group) {})
+       ->domain('api.example.com');
+
+// resource:
+$router->resource('products', ProductsController::class)
+       ->domain('example.com');
+```
+
+**multiple domains**
+
+You may add a route for multiple domains:
+
 ```php
 $router->get('blog', [Controller::class, 'method'])
-       ->domain('sub.example.com');
-       
-$router->group('admin', function($group) {})
-       ->domain('sub.example.com');
-       
-$router->resource('products', ProductsController::class)
-       ->domain('sub.example.com');
-       
-// you can define multiple domains too:
+       ->domain('example.ch')
+       ->domain('example.de');
+```
+
+**domain specific parameters**
+
+You may set domain specific parameters for each domain:
+
+```php
+use Tobento\Service\Routing\RouteInterface;
+
+$router->get('{?locale}/{about}', function($locale, $about) {
+    return [$locale, $about];
+})
+->name('about')
+
+// default parameters will be used if not specified on domain:
+->trans('about', ['de' => 'ueber-uns', 'en' => 'about', 'fr' => 'se-presente'])
+
+->domain('example.ch', function(RouteInterface $route): void {
+    $route->locales(['de', 'fr'])
+        ->localeOmit('de')
+        ->localeFallbacks(['fr' => 'de'])
+        ->trans('about', ['de' => 'ueber-uns', 'fr' => 'se-presente']);
+})->domain('example.de', function(RouteInterface $route): void {
+    $route->locales(['de', 'en'])
+        ->localeOmit('de')
+        ->localeFallbacks(['en' => 'de']);
+});
+```
+
+### Domain Url Generation
+
+```php
 $router->get('blog', [Controller::class, 'method'])
-       ->domain('example.com', 'de.example.com');
+       ->name('blog')
+       ->domain('example.ch')
+       ->domain('example.de');
+
+// current domain url:
+$url = $router->url('blog');
+
+// get specific domain url:
+$url = $router->url('blog')->domain('example.de');
+
+// get all domained urls:
+$urls = $router->url('blog')->domained();
+/*[
+    'example.ch' => 'https://example.ch/blog',
+    'example.de' => 'https://example.de/blog',
+]*/
+
+// you may get all translated urls from current or specific domain:
+$urls = $router->url('blog')->translated();
+$urls = $router->url('blog')->domain('example.de')->translated();
+```
+
+### Managing Domains
+
+You may specify the domains in order to managing them at one place.
+
+```php
+use Tobento\Service\Routing\Router;
+use Tobento\Service\Routing\RequestData;
+use Tobento\Service\Routing\UrlGenerator;
+use Tobento\Service\Routing\RouteFactory;
+use Tobento\Service\Routing\RouteDispatcher;
+use Tobento\Service\Routing\Constrainer\Constrainer;
+use Tobento\Service\Routing\RouteHandler;
+use Tobento\Service\Routing\MatchedRouteHandler;
+use Tobento\Service\Routing\RouteResponseParser;
+use Tobento\Service\Routing\Domains;
+use Tobento\Service\Routing\Domain;
+
+// Any PSR-11 container
+$container = new \Tobento\Service\Container\Container();
+
+// Domains
+$domains = new Domains(
+    new Domain(key: 'example.ch', domain: 'ch.localhost', uri: 'http://ch.localhost'),
+    new Domain(key: 'example.de', domain: 'de.localhost', uri: 'http://de.localhost'),
+);
+
+$router = new Router(
+    new RequestData(
+        $_SERVER['REQUEST_METHOD'] ?? 'GET',
+        rawurldecode($_SERVER['REQUEST_URI'] ?? ''),
+        'ch.localhost',
+    ),
+    new UrlGenerator(
+        'https://example.com/basepath',
+        'a-random-32-character-secret-signature-key',
+    ),
+    new RouteFactory($domains), // pass domains
+    new RouteDispatcher($container, new Constrainer()),
+    new RouteHandler($container),
+    new MatchedRouteHandler($container),
+    new RouteResponseParser(),
+);
+
+// Adding Routes:
+// Set the domain name as the key specified above:
+$router->get('blog', [Controller::class, 'method'])
+       ->domain('example.ch')
+       ->domain('example.de');
 ```
 
 ## Signed Routing

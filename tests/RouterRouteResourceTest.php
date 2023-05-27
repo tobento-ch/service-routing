@@ -328,6 +328,21 @@ class RouterRouteResourceTest extends TestCase
         }        
     }
     
+    public function testWhereMethod()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->resource('products', ProductsResource::class)
+               ->where('[a-z0-9]+');
+                
+        $route = $router->getRoute('products.index');
+        
+        $this->assertSame(
+            ['id' => '[a-z0-9]+'],
+            $route->getParameter('constraints')
+        );
+    }    
+    
     public function testParameterMethod()
     {
         $router = $this->createRouter('GET', 'products');
@@ -377,22 +392,38 @@ class RouterRouteResourceTest extends TestCase
             'bar',
             $route->getParameter('foo')
         );
-    }    
+    }
     
     public function testDomainMethod()
     {
         $router = $this->createRouter('GET', 'products');
         
         $router->resource('products', ProductsResource::class)
-               ->domain('sub.example.com');
+            ->domain('sub.example.com');
                 
         $route = $router->getRoute('products.index');
         
         $this->assertSame(
-            ['sub.example.com'],
-            $route->getParameter('domain')
+            ['sub.example.com' => null],
+            $route->getParameter('domains')
         );
     }
+    
+    public function testDomainMethodWithMultiple()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->resource('products', ProductsResource::class)
+            ->domain('example.com')
+            ->domain('sub.example.com');
+                
+        $route = $router->getRoute('products.index');
+        
+        $this->assertSame(
+            ['example.com' => null, 'sub.example.com' => null],
+            $route->getParameter('domains')
+        );
+    }    
     
     public function testBaseUrlMethod()
     {

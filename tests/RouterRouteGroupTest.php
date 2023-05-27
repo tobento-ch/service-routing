@@ -177,24 +177,56 @@ class RouterRouteGroupTest extends TestCase
     
     public function testDomainMethod()
     {
-        $router = $this->createRouter('GET', 'products');
+        $router = $this->createRouter('GET', 'admin/user/products', 'sub.example.com');
         
         $router->group('admin/{user}', function(RouteGroupInterface $group) {
             
             $group->get('products', function($user) {
                 return 'admin.products';
             })->name('admin.products');
+            
         })->domain('sub.example.com');
-                
-        $route = $router->getRoute('admin.products');
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('admin.products', $routeResponse);
         
         $this->assertSame(
-            ['sub.example.com'],
-            $route->getParameter('domain')
+            'https://sub.example.com/admin/user/products',
+            (string)$router->url('admin.products', ['user' => 'user'])
         );
     }
     
-    public function testDomainMethodRouteHasPriority()
+    public function testDomainMethodWithMultipleDomains()
+    {
+        $router = $this->createRouter('GET', 'admin/user/products', 'sub.example.com');
+        
+        $router->group('admin/{user}', function(RouteGroupInterface $group) {
+            
+            $group->get('products', function($user) {
+                return 'admin.products';
+            })->name('admin.products');
+            
+        })->domain('example.com')->domain('sub.example.com');
+
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('admin.products', $routeResponse);
+        
+        $this->assertSame(
+            'https://sub.example.com/admin/name/products',
+            (string)$router->url('admin.products', ['user' => 'name'])
+        );
+        
+        $this->assertSame(
+            'https://example.com/admin/name/products',
+            (string)$router->url('admin.products', ['user' => 'name'])->domain('example.com')
+        );        
+    } 
+    
+    public function testDomainMethodRouteDomainHasPriority()
     {
         $router = $this->createRouter('GET', 'products');
         
@@ -209,7 +241,7 @@ class RouterRouteGroupTest extends TestCase
         $route = $router->getRoute('admin.products');
         
         $this->assertSame(
-            ['en.example.com'],
+            'en.example.com',
             $route->getParameter('domain')
         );
     }

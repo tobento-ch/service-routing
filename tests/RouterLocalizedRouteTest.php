@@ -442,27 +442,6 @@ class RouterLocalizedRouteTest extends TestCase
         $this->assertFalse($router->url('about')->hasTranslation('fr'));
     }
     
-    public function testWithBaseUrl()
-    {
-        $router = $this->createRouter('GET', 'de/about');
-        
-        $router->get('{?locale}/about', function($locale) {
-            return $locale.'/about';
-        })->name('about')
-          ->locales(['de', 'en'])
-          ->locale('de')
-          ->localeOmit('en')
-          ->localeBaseUrls(['en' => 'https://en.example.com']);
-        
-        $this->assertSame(
-            [
-                'de' => 'https://example.com/de/about',
-                'en' => 'https://en.example.com/about',
-            ],
-            $router->url('about')->translated()
-        );
-    }
-    
     public function testWithoutLocale()
     {
         $router = $this->createRouter('GET', 'de/about');
@@ -620,5 +599,5 @@ class RouterLocalizedRouteTest extends TestCase
             ],
             $router->url('about')->translated()
         );
-    }      
+    }
 }

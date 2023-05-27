@@ -181,5 +181,86 @@ class RouterSignedTest extends TestCase
             'https://example.com/unsubscribe/5?expires=1634767200&signature=ec3e188cd35b7ea6ea69cd8939868fbd4c89d78d510b35c7abe4f93b5764a138',
             (string) $router->url('unsubscribe', ['user' => 5])->sign('2021-10-21', true)
         );
+    }
+    
+    public function testRouteSignedWithDomain()
+    {
+        $router = $this->createRouter('GET', 'unsubscribe');
+        
+        $router->get('unsubscribe/{user}', function($user) {
+            return 'unsubscribe/'.$user;
+        })->signed('unsubscribe')->domain('example.com');
+        
+        $url = (string) $router->url('unsubscribe', ['user' => 5])->sign();
+        
+        $this->assertTrue(str_starts_with($url, 'https://example.com'));
+        
+        $uri = str_replace('https://example.com/', '', $url);
+        
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame(
+            'unsubscribe/5',
+            $routeResponse
+        );
+    }
+    
+    public function testRouteSignedWithMultipleDomain()
+    {
+        $router = $this->createRouter('GET', 'unsubscribe', 'sub.example.com');
+        
+        $router->get('unsubscribe/{user}', function($user) {
+            return 'unsubscribe/'.$user;
+        })->signed('unsubscribe')->domain('example.com')->domain('sub.example.com');
+        
+        $url = (string) $router->url('unsubscribe', ['user' => 5])->sign();
+
+        $this->assertTrue(str_starts_with($url, 'https://sub.example.com'));
+        
+        $uri = str_replace('https://sub.example.com/', '', $url);
+        
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame(
+            'unsubscribe/5',
+            $routeResponse
+        );
+    }
+    
+    public function testRouteSignedWithMultipleDomainSpecificDomain()
+    {
+        $router = $this->createRouter('GET', 'unsubscribe', 'example.com');
+        
+        $router->get('unsubscribe/{user}', function($user) {
+            return 'unsubscribe/'.$user;
+        })->signed('unsubscribe')->domain('example.com')->domain('example.ch')->domain('example.de');
+        
+        $url = (string) $router->url('unsubscribe', ['user' => 5])->domain('example.ch')->sign();
+
+        $this->assertTrue(str_starts_with($url, 'https://example.ch'));
+        
+        $uri = str_replace('https://example.ch/', '', $url);
+        
+        $router = $this->createRouter('GET', 'unsubscribe', 'example.ch');
+        
+        $router->get('unsubscribe/{user}', function($user) {
+            return 'unsubscribe/'.$user;
+        })->signed('unsubscribe')->domain('example.com')->domain('example.ch')->domain('example.de');
+        
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame(
+            'unsubscribe/5',
+            $routeResponse
+        );
     }    
 }

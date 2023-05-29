@@ -19,6 +19,7 @@ use Tobento\Service\Routing\RouterInterface;
 use Tobento\Service\Routing\RequestData;
 use Tobento\Service\Routing\UrlGenerator;
 use Tobento\Service\Routing\RouteFactory;
+use Tobento\Service\Routing\RouteInterface;
 use Tobento\Service\Routing\RouteDispatcher;
 use Tobento\Service\Routing\Constrainer\Constrainer;
 use Tobento\Service\Routing\RouteHandler;
@@ -327,6 +328,18 @@ class RouterRouteResourceTest extends TestCase
             ); 
         }        
     }
+    
+    public function testNameMethod()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->resource('products', ProductsResource::class)
+               ->name('foo');
+        
+        $route = $router->getRoute('foo.index');
+        
+        $this->assertInstanceOf(RouteInterface::class, $route);
+    }    
     
     public function testWhereMethod()
     {

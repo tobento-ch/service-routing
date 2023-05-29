@@ -47,8 +47,7 @@
     "autoload-dev": {
         "psr-4": {
             "Tobento\\Service\\Routing\\Test\\": "tests",
-            "Tobento\\Demo\\Routing\\Simple\\": "demo/simple/src",
-            "Tobento\\Demo\\Routing\\Pro\\": "demo/pro/src"
+            "App\\": "build/app"
         }
     },
     "scripts": {

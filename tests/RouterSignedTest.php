@@ -94,6 +94,19 @@ class RouterSignedTest extends TestCase
         $matchedRoute = $router->dispatch();
     }
     
+    public function testRouteSignedThrowsInvalidSignatureExceptionWithMissingExpiring()
+    {
+        $this->expectException(InvalidSignatureException::class);
+        
+        $router = $this->createRouter('GET', 'unsubscribe/5');
+        
+        $router->get('unsubscribe/{user}', function($user) {
+            return 'unsubscribe/'.$user;
+        })->signed('unsubscribe');
+        
+        $matchedRoute = $router->dispatch();
+    }
+    
     public function testRouteSignedWithCustomResponse()
     {
         $router = $this->createRouter('GET', 'unsubscribe');
@@ -136,7 +149,7 @@ class RouterSignedTest extends TestCase
         })->signed('unsubscribe');
         
         $this->assertSame(
-            'https://example.com/unsubscribe/5/ef05716c4350c12bfe0770a90d922163733c9afc3a8cbff17b47d6b2914bc0ad',
+            'https://example.com/unsubscribe/5/c0b119f15637c3da263d5956278d7e9f8567321d377e8f36e0b884daefbfb06a',
             (string) $router->url('unsubscribe', ['user' => 5])->sign()
         );
     }
@@ -150,7 +163,7 @@ class RouterSignedTest extends TestCase
         })->signed('unsubscribe');
         
         $this->assertSame(
-            'https://example.com/unsubscribe/5/e8ea2a5210a7f16c26a6750ce8255c47fee9ff7b13300bb13df0fff76ad3da4a/1634767200',
+            'https://example.com/unsubscribe/5/6077d42cd0ced1625fa880d8535ef972622cac7bc667c38e86eb5a0be70f71d0/1634767200',
             (string) $router->url('unsubscribe', ['user' => 5])->sign('2021-10-21')
         );
     }

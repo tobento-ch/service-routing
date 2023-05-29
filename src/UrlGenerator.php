@@ -71,7 +71,6 @@ class UrlGenerator implements UrlGeneratorInterface
                 $segment = ltrim($segment, '{');
                 $segment = rtrim($segment, '}');
                 $wildcard = false;
-                //$optional = false;
                 
                 if (substr($segment, -1) === '*') {
                     $segment = substr($segment, 0, -1);
@@ -80,10 +79,14 @@ class UrlGenerator implements UrlGeneratorInterface
                 
                 if (substr($segment, 0, 1) === '!') {
                     $segment = ltrim($segment, '!');
-                    //$optional = true;
                     $wildcard = true;
+                    
+                    if (empty($parameters[$segment])) {
+                        unset($parameters[$segment]);
+                        continue;
+                    }
                 }
-
+                
                 // do we have a matching parameter. If not, just return url base.
                 if (!isset($parameters[$segment])) {
                     
@@ -101,7 +104,7 @@ class UrlGenerator implements UrlGeneratorInterface
             
             $segments[] = $segment;
         }
-
+        
         $uriPath = $uriPath->withSegments($segments);
         
         if (!is_null($missingParameter)) {
@@ -116,7 +119,7 @@ class UrlGenerator implements UrlGeneratorInterface
         } else {
             $resolvedUri = $uriPath->get();
         }
-        
+
         return $this->buildFullUrl($uri, $resolvedUri, $baseUrl);
     }
 
@@ -164,7 +167,7 @@ class UrlGenerator implements UrlGeneratorInterface
         }
 
         $parameters[$this->signatureName] = '';
-
+        
         $signature = hash_hmac('sha256', $this->generate($uri, $parameters), $this->signatureKey);
         
         $parameters[$this->signatureName] = $signature;
@@ -215,16 +218,16 @@ class UrlGenerator implements UrlGeneratorInterface
                 && !is_null((new DateFormatter())->toDateTime('@'.$expires, fallback: null))
             ) {
                 $signature = $uriRequest->path()->getSegment($segmentsCount-1, '');
-                $segments[$segmentsCount-2] = '';
+                unset($segments[$segmentsCount-2]);
             } else {
                 $signature = $uriRequest->path()->getSegment($segmentsCount, '');
-                $segments[$segmentsCount-1] = '';
+                unset($segments[$segmentsCount-1]);
             }
             
             $uriPath = $uriRequest->path()->withSegments($segments);           
             $uriRequest = $uriRequest->withPath($uriPath);         
         }
-        
+                
         $url = $this->buildFullUrl($uri, $uriRequest->get());
         
         // check for expiration
@@ -237,7 +240,7 @@ class UrlGenerator implements UrlGeneratorInterface
                 return false;
             }
         }
-            
+        
         $original = hash_hmac('sha256', $url, $this->signatureKey);
         
         return hash_equals($original, $signature);

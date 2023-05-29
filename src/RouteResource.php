@@ -61,6 +61,11 @@ class RouteResource implements RouteResourceInterface
     protected array $methods = [];
     
     /**
+     * @var null|string
+     */
+    protected null|string $routeName = null;
+    
+    /**
      * Create a new RouteResource
      *
      * @param RouterInterface $router
@@ -92,6 +97,18 @@ class RouteResource implements RouteResourceInterface
         $this->action('update', 'PUT|PATCH', '/{'.$placeholder.'}', $constraints);
         $this->action('delete', 'DELETE', '/{'.$placeholder.'}', $constraints);
     }
+    
+    /**
+     * Set a route name.
+     *    
+     * @param string $name
+     * @return static $this
+     */
+    public function name(string $name): static
+    {        
+        $this->routeName = $name;
+        return $this;
+    }
 
     /**
      * Set an action
@@ -106,11 +123,7 @@ class RouteResource implements RouteResourceInterface
     {        
         $uri = $this->name.$uri;
         
-        $name = str_replace(['/', '{', '}', '?', '*'], ['.', '', '', '', ''], $this->name);
-        
-        $name = strtolower($name).'.'.$action;
-        
-        $this->actions[$action] = [$method, $uri, $name, $parameters];
+        $this->actions[$action] = [$method, $uri, $this->name, $parameters];
         
         return $this;
     }
@@ -221,6 +234,7 @@ class RouteResource implements RouteResourceInterface
      * Get the routes.
      *
      * @return array<int, RouteInterface>
+     * @psalm-suppress UnusedVariable
      */
     public function getRoutes(): array
     {
@@ -244,6 +258,13 @@ class RouteResource implements RouteResourceInterface
                 $uri,
                 [$this->controller, $action]
             );
+            
+            if ($this->routeName) {
+                $name = $this->routeName.'.'.$action;
+            } else {
+                $name = str_replace(['/', '{', '}', '?', '*'], ['.', '', '', '', ''], $name);
+                $name = strtolower($name).'.'.$action;
+            }
             
             $route->name($name);
             

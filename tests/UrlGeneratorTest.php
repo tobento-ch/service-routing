@@ -69,6 +69,11 @@ class UrlGeneratorTest extends TestCase
             'https://example.com/blog/5/foo',
             $g->generate('{?locale}/blog/{id}/{slug}', ['locale' => '', 'id' => 5, 'slug' => 'foo'])
         );
+        
+        $this->assertSame(
+            'https://example.com/blog/5/foo',
+            $g->generate('blog/{?locale}/{id}/{slug}', ['locale' => '', 'id' => 5, 'slug' => 'foo'])
+        );        
     }
     
     public function testUrlWithMissingParameterThrowsUrlException()

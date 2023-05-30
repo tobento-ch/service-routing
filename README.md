@@ -362,8 +362,7 @@ $router->group('admin', function(RouteGroupInterface $group) {
   ->locales(['de', 'en'])
   ->localeOmit('de')
   ->localeName('locale')
-  ->localeFallbacks(['de' => 'en'])
-  ->localeBaseUrls(['en' => 'en.example.com']);
+  ->localeFallbacks(['de' => 'en']);
 ```
 
 If the group uri definition has parameters, they are available on the routes:
@@ -770,30 +769,6 @@ $urls = $router->url('about')->translated();
 ]*/
 ```
 
-**Define specific base urls:**
-
-```php
-$router->get('{?locale}/about', [Controller::class, 'method'])
-       ->name('about')
-       ->locales(['de', 'en'])
-       ->localeBaseUrls(['en' => 'https://en.example.com']);
-
-// get current locale url:
-$url = (string) $router->url('about');
-// https://example.com/basepath/about
-
-// get specific locale url:
-$url = (string) $router->url('about')->locale('en');
-// https://en.example.com/en/about
-
-// get all translated urls:
-$urls = $router->url('about')->translated();
-/*[
-    'de' => 'https://example.com/basepath/de/about',
-    'en' => 'https://en.example.com/en/about',
-]*/
-```
-
 **Rename locale uri definition:**
 
 ```php
@@ -849,31 +824,6 @@ $url = (string) $router->url('about')->locale('en');
 $urls = $router->url('about')->translated();
 /*[
     'en' => 'https://example.com/basepath/about',
-]*/
-```
-
-**Define specific base urls:**
-
-```php
-$router->get('/{about}', [Controller::class, 'method'])
-       ->name('about')
-       ->localeBaseUrls(['en' => 'https://en.example.com'])
-       ->locale('de') // set the current locale.
-       ->trans('about', ['de' => 'ueber-uns', 'en' => 'about']);
-
-// get current locale url:
-$url = (string) $router->url('about');
-// https://example.com/basepath/ueber-uns
-
-// get specific locale url:
-$url = (string) $router->url('about')->locale('en');
-// https://en.example.com/about
-
-// get all translated urls:
-$urls = $router->url('about')->translated();
-/*[
-    'en' => 'https://en.example.com/about',
-    'de' => 'https://example.com/basepath/ueber-uns',
 ]*/
 ```
 

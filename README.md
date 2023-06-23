@@ -460,7 +460,7 @@ $router->resource('products', ProductsController::class)
            action: 'index',
            name: 'foo',
            value: 'bar',
-       );   
+       );
 ```
 
 **Adding additional route parameters for all actions:**
@@ -470,7 +470,44 @@ $router->resource('products', ProductsController::class)
        ->sharedParameter(
            name: 'foo',
            value: 'bar',
-       );   
+       );
+```
+
+**With localization and translation:**
+
+```php
+$router->resource('{?locale}/{products}', ProductsResource::class)
+    // specify the name as above we set the uri:
+    ->name('products')
+    
+    // specify the locales:
+    ->locales(['de', 'en'])
+    ->localeOmit('en')
+    ->localeFallbacks(['de' => 'en'])
+    
+    // specify the translations for the verbs:
+    ->trans('create', ['de' => 'neu', 'en' => 'create'], action: 'create')
+    ->trans('edit', ['de' => 'bearbeiten', 'en' => 'edit'], action: 'edit')
+    
+    // for products:
+    ->trans('products', ['de' => 'produkte', 'en' => 'products']);
+    
+// Example with new action:
+$router->resource('products', ProductsController::class)
+    ->action(
+        action: 'display', 
+        method: 'GET', 
+        uri: '/display/{id}', // set without {display}
+        parameters: ['constraints' => ['id' => '[0-9]+']],
+    )
+    
+    // specify the locales:
+    ->locales(['de', 'en'])
+    ->localeOmit('en')
+    ->localeFallbacks(['de' => 'en'])
+    
+    // specify the translations for the display verb:
+    ->trans('display', ['de' => 'ansicht', 'en' => 'display'], action: 'display');
 ```
 
 ## Domain Routing

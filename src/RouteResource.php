@@ -54,11 +54,21 @@ class RouteResource implements RouteResourceInterface
      * @var array The parameters.
      */
     protected array $sharedParameters = [];
-    
+
     /**
-     * @var array<int, mixed> The route methods to call.
+     * @var array The route methods to call.
      */
     protected array $methods = [];
+    
+    /**
+     * @var array<int, mixed> The route shared methods to call.
+     */
+    protected array $sharedMethods = [];
+    
+    /**
+     * @var array
+     */
+    protected array $transReplace = [];
     
     /**
      * @var null|string
@@ -188,7 +198,75 @@ class RouteResource implements RouteResourceInterface
      */
     public function domain(string $domain, null|callable $route = null): static
     {
-        $this->methods[] = ['domain', 'domains', [$domain, $route]];
+        $this->sharedMethods[] = ['domain', [$domain, $route]];
+        return $this;
+    }
+    
+    /**
+     * Set the locale.
+     *    
+     * @param string $locale The default or current locale.
+     * @return static $this
+     */
+    public function locale(string $locale): static
+    {
+        $this->sharedMethods[] = ['locale', [$locale]];
+        return $this;
+    }
+    
+    /**
+     * Set the locales.
+     *    
+     * @param array<int, string> $locales The supported locales
+     * @return static $this
+     */
+    public function locales(array $locales): static
+    {
+        $this->sharedMethods[] = ['locales', [$locales]];
+        return $this;
+    }
+    
+    /**
+     * The locale to omit on uri.
+     *
+     * @param string $localeOmit
+     * @return static $this
+     */
+    public function localeOmit(string $localeOmit): static
+    {
+        $this->sharedMethods[] = ['localeOmit', [$localeOmit]];
+        return $this;
+    }
+    
+    /**
+     * Set the locale fallbacks. ['de' => 'en']
+     *    
+     * @param array<string, string> $localeFallbacks
+     * @return static $this
+     */
+    public function localeFallbacks(array $localeFallbacks): static
+    {
+        $this->sharedMethods[] = ['localeFallbacks', [$localeFallbacks]];
+        return $this;
+    }
+    
+    /**
+     * Translate an uri key.
+     *    
+     * @param string $key
+     * @param array<string, string> $translations $translations
+     * @return static $this
+     */
+    public function trans(string $key, array $translations, null|string $action = null): static
+    {
+        if ($action) {
+            $this->methods[$action][] = ['trans', [$key, $translations]];            
+            $this->transReplace[$action]['search'][] = $key;
+            $this->transReplace[$action]['replace'][] = '{'.$key.'}';
+        } else {
+            $this->sharedMethods[] = ['trans', [$key, $translations]];
+        }
+        
         return $this;
     }
     
@@ -252,6 +330,15 @@ class RouteResource implements RouteResourceInterface
         
         foreach($actions as $action => [$method, $uri, $name, $parameters])
         {
+            // check for specific trans
+            if (isset($this->transReplace[$action])) {
+                $uri = str_replace(
+                    $this->transReplace[$action]['search'] ?? [],
+                    $this->transReplace[$action]['replace'] ?? [],
+                    $uri,
+                );
+            }
+            
             $route = $this->router->getRouteFactory()->createRoute(
                 $this->router,
                 $method,
@@ -291,9 +378,16 @@ class RouteResource implements RouteResourceInterface
             }
             
             // shared methods
-            foreach($this->methods as [$method, $name, $params]) {
+            foreach($this->sharedMethods as [$method, $params]) {
                 $route->$method(...$params);
-            }            
+            }
+            
+            // specific action methods
+            if (isset($this->methods[$action])) {
+                foreach($this->methods[$action] as [$method, $params]) {
+                    $route->$method(...$params);
+                }
+            }
             
             $routes[] = $route;
         }

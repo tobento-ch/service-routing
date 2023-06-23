@@ -436,7 +436,7 @@ class RouterRouteResourceTest extends TestCase
             ['example.com' => null, 'sub.example.com' => null],
             $route->getParameter('domains')
         );
-    }    
+    }
     
     public function testBaseUrlMethod()
     {
@@ -451,7 +451,7 @@ class RouterRouteResourceTest extends TestCase
             'sub.example.com',
             $route->getParameter('base_url')
         );
-    }    
+    }
     
     public function testGroupResource()
     {
@@ -486,5 +486,82 @@ class RouterRouteResourceTest extends TestCase
             'https://example.com/admin/en/products',
             (string) $router->url('admin.locale.products.index', ['locale' => 'en'])
         );
-    }    
+    }
+
+    public function testLocalizedRouting()
+    {
+        $router = $this->createRouter('GET', 'de/produkte/neu');
+        
+        $resource = $router->resource('{?locale}/{products}', ProductsResource::class)
+            ->name('products')
+            ->locales(['de', 'en'])
+            ->localeOmit('en')
+            ->localeFallbacks(['de' => 'en'])
+            ->trans('create', ['de' => 'neu', 'en' => 'create'], 'create')
+            ->trans('edit', ['de' => 'bearbeiten', 'en' => 'edit'], 'edit')
+            ->trans('products', ['de' => 'produkte', 'en' => 'products']);
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('create', $routeResponse);
+        
+        $this->assertSame(
+            [
+                'de' => 'https://example.com/de/produkte/neu',
+                'en' => 'https://example.com/products/create',
+            ],
+            $router->url('products.create')->translated()
+        );
+        
+        $this->assertSame(
+            'https://example.com/products/5/edit',
+            $router->url('products.edit', ['id' => '5'])->get()
+        );
+        
+        $this->assertSame(
+            'https://example.com/de/produkte/5/bearbeiten',
+            $router->url('products.edit', ['id' => '5'])->locale('de')->get()
+        );
+        
+        $this->assertSame(
+            [
+                'de' => 'https://example.com/de/produkte/5/bearbeiten',
+                'en' => 'https://example.com/products/5/edit',
+            ],
+            $router->url('products.edit', ['id' => '5'])->translated()
+        );
+    }
+    
+    public function testLocalizedRoutingWithNewAction()
+    {
+        $router = $this->createRouter('GET', 'de/produkte/ansicht/5');
+        
+        $resource = $router->resource('{?locale}/{products}', ProductsResource::class)
+            ->name('products')
+            ->action(
+                action: 'display', 
+                method: 'GET', 
+                uri: '/display/{id}',
+                parameters: ['constraints' => ['id' => '[0-9]+']],
+            )
+            ->locales(['de', 'en'])
+            ->localeOmit('en')
+            ->localeFallbacks(['de' => 'en'])
+            ->trans('display', ['de' => 'ansicht', 'en' => 'display'], action: 'display')
+            ->trans('products', ['de' => 'produkte', 'en' => 'products']);
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('display/5', $routeResponse);
+        
+        $this->assertSame(
+            [
+                'de' => 'https://example.com/de/produkte/ansicht/5',
+                'en' => 'https://example.com/products/display/5',
+            ],
+            $router->url('products.display', ['id' => '5'])->translated()
+        );
+    }
 }

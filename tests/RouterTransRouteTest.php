@@ -78,6 +78,42 @@ class RouterTransRouteTest extends TestCase
         );
     }
     
+    public function testWithoutLocaleUriMultipleTrans()
+    {
+        $router = $this->createRouter('GET', 'ueber-uns/mehr');
+        
+        $router->get('{about}/{more}', function($about, $more) {
+            return $about.'/'.$more;
+        })->name('about')
+          ->locale('de')
+          ->trans('about', ['de' => 'ueber-uns', 'en' => 'about'])
+          ->trans('more', ['de' => 'mehr', 'en' => 'more']);
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame(
+            'ueber-uns/mehr',
+            $routeResponse
+        );
+    }
+    
+    public function testWithoutLocaleUriMultipleTransThrowsRouteNotFoundExceptionIfUriDoesNotMatch()
+    {
+        $this->expectException(RouteNotFoundException::class);
+        
+        $router = $this->createRouter('GET', 'ueber-uns/foo');
+        
+        $router->get('{about}/{more}', function($about, $more) {
+            return $about.'/'.$more;
+        })->name('about')
+          ->locale('de')
+          ->trans('about', ['de' => 'ueber-uns', 'en' => 'about'])
+          ->trans('more', ['de' => 'mehr', 'en' => 'more']);
+        
+        $matchedRoute = $router->dispatch();
+    }
+    
     public function testWithoutLocaleUriThrowsRouteNotFoundExceptionIfLocaleDoesNotMatchRequestUri()
     {
         $this->expectException(RouteNotFoundException::class);
@@ -284,6 +320,22 @@ class RouterTransRouteTest extends TestCase
         $matchedRoute = $router->dispatch();
     }
     
+    public function testWithLocaleUriMultipleTransThrowsRouteNotFoundExceptionIfUriDoesNotMatch()
+    {
+        $this->expectException(RouteNotFoundException::class);
+        
+        $router = $this->createRouter('GET', 'de/ueber-uns/more');
+        
+        $router->get('{?locale}/{about}/{more}', function($about, $more) {
+            return $about.'/'.$more;
+        })->name('about')
+          ->locales(['de', 'en'])
+          ->trans('more', ['de' => 'mehr', 'en' => 'more'])
+          ->trans('about', ['de' => 'ueber-uns', 'en' => 'about']);
+        
+        $matchedRoute = $router->dispatch();
+    }
+    
     public function testWithLocaleUriAndLocaleOmitShouldBeLocaleIfNotSet()
     {
         $router = $this->createRouter('GET', 'ueber-uns');
@@ -301,5 +353,5 @@ class RouterTransRouteTest extends TestCase
             'de/ueber-uns',
             $routeResponse
         );
-    }    
+    }
 }

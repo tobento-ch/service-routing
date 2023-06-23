@@ -269,7 +269,7 @@ class Route implements RouteInterface, Arrayable
      * Translate an uri key.
      *    
      * @param string $key
-     * @param array<string, string> $translations $translations
+     * @param array<string, string> $translations
      * @return static $this
      */
     public function trans(string $key, array $translations): static
@@ -304,7 +304,7 @@ class Route implements RouteInterface, Arrayable
             }
 
             return $translations[$locale] === $trans ? $route : null;
-        }, 'trans');
+        }, 'trans.'.$key);
         
         return $this;
     }    

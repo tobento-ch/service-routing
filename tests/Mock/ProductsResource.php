@@ -86,5 +86,15 @@ class ProductsResource
     public function delete($id): string
     {
         return 'delete/'.$id;
-    }    
+    }
+    
+    /**
+     * Display action
+     *
+     * @return string
+     */
+    public function display($id): string
+    {
+        return 'display/'.$id;
+    }
 }

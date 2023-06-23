@@ -174,11 +174,13 @@ class Url implements UrlInterface, Stringable
         }
         
         $translated = [];
-        
+                
         foreach($locales as $locale)
         {
             try {
+                $parameters = $this->parameters;
                 $translated[$locale] = (string)$this->locale($locale);
+                $this->parameters = $parameters;
             } catch(TranslationException $e) {
                 // ignore
             }

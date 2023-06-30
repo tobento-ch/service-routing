@@ -13,12 +13,10 @@ declare(strict_types=1);
 
 namespace Tobento\Service\Routing;
 
-use Stringable;
-
 /**
  * Url
  */
-class Url implements UrlInterface, Stringable
+class Url implements UrlInterface
 {
     /**
      * @var RouteInterface $route

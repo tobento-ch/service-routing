@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Tobento\Service\Routing;
 
+use Stringable;
+
 /**
  * UrlInterface
  */
-interface UrlInterface
+interface UrlInterface extends Stringable
 {
     /**
      * Get the generated url.

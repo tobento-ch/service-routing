@@ -184,7 +184,7 @@ class RouteGroup implements RouteGroupInterface
         $route = $this->router->getRouteFactory()->createRoute(
             $this->router,
             $method,
-            $this->uri.'/'.$uri,
+            !empty($this->uri) ? $this->uri.'/'.$uri : $uri,
             $handler
         );
         
@@ -205,7 +205,7 @@ class RouteGroup implements RouteGroupInterface
     {
         $group = $this->router->getRouteFactory()->createRouteGroup(
             $this->router,
-            $this->uri.'/'.$uri,
+            !empty($this->uri) ? $this->uri.'/'.$uri : $uri,
             $callback
         );
         
@@ -226,7 +226,7 @@ class RouteGroup implements RouteGroupInterface
     {
         $resource = $this->router->getRouteFactory()->createRouteResource(
             $this->router,
-            $this->uri.'/'.$name,
+            !empty($this->uri) ? $this->uri.'/'.$name : $name,
             $controller,
             $placeholder
         );

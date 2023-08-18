@@ -141,6 +141,28 @@ class RouterRouteGroupTest extends TestCase
         );
     }
     
+    public function testGroupWithEmptyUri()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->group('', function(RouteGroupInterface $group) {
+            
+            $group->get('products', function() {
+                return 'products';
+            })->name('products');
+        });
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('products', $routeResponse);
+        
+        $this->assertSame(
+            'https://example.com/products',
+            (string) $router->url('products')
+        );
+    }
+    
     public function testThatGroupUriGetsAppendedToUrl()
     {
         $router = $this->createRouter('GET', 'admin/products');

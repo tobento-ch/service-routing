@@ -354,4 +354,32 @@ class RouterTransRouteTest extends TestCase
             $routeResponse
         );
     }
+    
+    public function testThrowsTranslationExceptionIfLocaleUrlDoesNotExists()
+    {
+        $this->expectException(TranslationException::class);
+        
+        $router = $this->createRouter('GET', 'en/about');
+        
+        $router->get('{?locale}/{about}', function($locale, $about) {
+            return $locale.'/'.$about;
+        })->name('about')
+          ->trans('about', ['de' => 'ueber-uns', 'en' => 'about']);
+        
+        $router->url('about')->locale('fr');
+    }
+    
+    public function testUrlFallsbackToFirstLocaleIfLocaleSetDoesNotExist()
+    {
+        $router = $this->createRouter('GET', 'about');
+        
+        $router->get('{?locale}/{about}', function($locale, $about) {
+            return $locale.'/'.$about;
+        })->name('about')
+          ->locales(['de', 'en'])
+          ->locale('fr')
+          ->trans('about', ['de' => 'ueber-uns', 'en' => 'about']);
+        
+        $this->assertSame('https://example.com/de/ueber-uns', (string)$router->url('about'));
+    }    
 }

@@ -412,5 +412,33 @@ class RouterRouteGroupTest extends TestCase
             'admin.shop.products',
             $routeResponse
         );
-    }    
+    }
+    
+    public function testRouteLocalizedFromGroup()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $router->group('', function(RouteGroupInterface $group) {
+            
+            $group->get('{?locale}/{register}', function($locale, $register) {
+                return 'register';
+            })->name('register');
+            
+        })
+        ->locales(['de', 'en'])
+        ->localeOmit('de')
+        ->trans('register', ['de' => 'registrierung', 'en' => 'register'])
+        ->localeFallbacks(['en' => 'de']);
+                
+        $route = $router->getRoute('register');
+        
+        $this->assertSame(['de', 'en'], $route->getParameter('locales'));
+        $this->assertSame('de', $route->getParameter('locale_omit'));
+        $this->assertSame(
+            ['register' => ['de' => 'registrierung', 'en' => 'register']],
+            $route->getParameter('trans')
+        );
+        $this->assertTrue(isset($route->getParameter('matches')['trans.register']));
+        $this->assertSame(['en' => 'de'], $route->getParameter('locale_fallbacks'));
+    }
 }

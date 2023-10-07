@@ -154,7 +154,7 @@ class RouteGroup implements RouteGroupInterface
      */
     public function trans(string $key, array $translations): static
     {
-        $this->parameters['trans'][$key] = $translations;
+        $this->methods[] = ['trans', 'trans', [$key, $translations]];
         return $this;
     }
     

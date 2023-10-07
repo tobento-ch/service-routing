@@ -198,9 +198,15 @@ class Url implements UrlInterface
         $localeName = $this->route->getParameter('locale_name') ?? 'locale';
         $currentLocale = $this->route->getParameter('locale');
         $localeOmit = $this->route->getParameter('locale_omit') ?? null;
+        $locales = $this->route->getParameter('locales') ?? [];
         
         if (is_null($locale)) {
             $locale = $currentLocale ?: $localeOmit;
+
+            // use first locale as fallback:
+            if (!is_null($locale) && !empty($locales) && !in_array($locale, $locales)) {
+                $locale = $locales[0];
+            }
         }
         
         if (!empty($this->parameters[$localeName])) {

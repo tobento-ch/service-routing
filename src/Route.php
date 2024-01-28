@@ -435,25 +435,48 @@ class Route implements RouteInterface, Arrayable
      */    
     public function toArray(): array
     {
-        $handlerName = '';
-        
-        if (is_string($this->handler)) {
-            $handlerName = $this->handler;
-        }
-        
-        if (is_object($this->handler)) {
-            $handlerName = get_class($this->handler);
-        }
-        
-        if (is_array($this->handler)) {
-            $handlerName = $this->handler;
-        }
+        $parameters = $this->parameters;
+        unset($parameters['matches']);
         
         return [
             'method' => $this->method,
             'uri' => $this->uri,
-            'handler' => $handlerName,
+            'handler' => $this->handlerToString($this->handler),
             'parameters' => $this->parameters,            
         ];
+    }
+    
+    /**
+     * Converts handler to string.
+     *
+     * @param mixed $handler
+     * @return string
+     */    
+    protected function handlerToString(mixed $handler): string
+    {
+        $method = '__invoke';
+        
+        if (is_array($handler)) {
+            $method = $handler[1] ?? '';
+            $handler = $handler[0] ?? '';
+        }
+        
+        if (is_string($handler) && str_contains($handler, '::')) {
+            return $handler;
+        }
+        
+        if (is_string($handler) && !str_contains($handler, '::')) {
+            return $handler.'::'.$method;
+        }
+
+        if ($handler instanceof \Closure) {
+            return get_class($handler);
+        }
+        
+        if (is_object($handler)) {
+            return get_class($handler).'::'.$method;
+        }
+        
+        return '';
     }
 }

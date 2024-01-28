@@ -145,6 +145,8 @@ The default RouteHandler supports autowiring and the following handler definitio
 ```php
 // By providing class and method name:
 $router->get('blog', [Controller::class, 'method']);
+$router->get('blog', [new Controller(), 'method']);
+$router->get('blog', Controller::class); // __invoke method called
 
 // Using Class::method syntax:
 $router->get('blog', 'Controller::method');

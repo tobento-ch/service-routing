@@ -24,6 +24,8 @@ use Tobento\Service\Routing\Constrainer\Constrainer;
 use Tobento\Service\Routing\RouteHandler;
 use Tobento\Service\Routing\MatchedRouteHandler;
 use Tobento\Service\Routing\RouteResponseParser;
+use Tobento\Service\Routing\Test\Mock\Controller as Ctr;
+use Tobento\Service\Routing\Test\Mock\Bar;
 use Tobento\Service\Routing\Test\Mock\Middleware;
 use Tobento\Service\Routing\Test\Mock\AnotherMiddleware;
 
@@ -183,5 +185,39 @@ class RouterRouteParametersTest extends TestCase
             null,
             $route->getParameter('foo')
         );
-    }     
+    }
+    
+    public function testToArrayMethod()
+    {
+        $router = $this->createRouter('GET', '');
+        
+        $route = $router->get('blog', [Controller::class, 'method'])->name('blog');
+        $this->assertSame(
+            [
+                'method' => 'GET',
+                'uri' => 'blog',
+                'handler' => 'Tobento\Service\Routing\Test\Controller::method',
+                'parameters' => ['name' => 'blog'],
+            ],
+            $route->toArray()
+        );
+
+        $route = $router->get('blog', [new Ctr(new Bar()), 'home']);
+        $this->assertSame(
+            'Tobento\Service\Routing\Test\Mock\Controller::home',
+            $route->toArray()['handler'],
+        );
+        
+        $route = $router->get('blog', 'Controller::method');
+        $this->assertSame('Controller::method', $route->toArray()['handler']);
+        
+        $route = $router->get('blog', function() {});
+        $this->assertSame('Closure', $route->toArray()['handler']);
+        
+        $route = $router->get('blog', Controller::class);
+        $this->assertSame(
+            'Tobento\Service\Routing\Test\Controller::__invoke',
+            $route->toArray()['handler'],
+        );
+    }
 }

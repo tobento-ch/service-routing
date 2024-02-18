@@ -224,6 +224,7 @@ class Route implements RouteInterface, Arrayable
             $localeName = $route->getParameter('locale_name', 'locale');
             $requestParams = $route->getParameter('request_parameters', []);
             $locale = $requestParams[$localeName] ?? null;
+            $localeDefault = $route->getParameter('locale');
             
             // check for locale in slug.
             if (
@@ -245,10 +246,6 @@ class Route implements RouteInterface, Arrayable
                 throw new TranslationException($this, 'No locale detected for translation');
             }
             
-            // update
-            $requestParams[$localeName] = $route->getParameter('locale');
-            $route->parameter('request_parameters', $requestParams);
-            
             // check for locales.
             if (
                 $route->hasParameter('locales')
@@ -256,8 +253,15 @@ class Route implements RouteInterface, Arrayable
                 && is_array($route->getParameter('locales'))
                 && !in_array($route->getParameter('locale'), $route->getParameter('locales'))
             ) {
+                $requestParams[$localeName] = $localeDefault;
+                $route->parameter('locale', $localeDefault);
+                $route->parameter('request_parameters', $requestParams);
+                    
                 return null;
             }
+            
+            $requestParams[$localeName] = $route->getParameter('locale');
+            $route->parameter('request_parameters', $requestParams);
             
             return $route;
         }, 'locales');

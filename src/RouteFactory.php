@@ -78,14 +78,14 @@ class RouteFactory implements RouteFactoryInterface
      *
      * @param RouterInterface $router
      * @param string $name The resource name
-     * @param string $controller The controller
+     * @param string|object $controller The controller
      * @param string $placeholder The placeholder name for the uri
      * @return RouteResourceInterface
      */
     public function createRouteResource(
         RouterInterface $router,
         string $name,
-        string $controller,
+        string|object $controller,
         string $placeholder = 'id'
     ): RouteResourceInterface {
         return new RouteResource(

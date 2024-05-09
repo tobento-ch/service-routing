@@ -458,9 +458,24 @@ class RouterRouteResourceTest extends TestCase
         $router = $this->createRouter('GET', 'admin/products');
         
         $router->group('admin', function(RouteGroupInterface $group) {
-            
             $group->resource('products', ProductsResource::class);
-            
+        });
+                
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame(
+            'index',
+            $routeResponse
+        );
+    }
+    
+    public function testGroupResourceWithControllerObject()
+    {
+        $router = $this->createRouter('GET', 'admin/products');
+        
+        $router->group('admin', function(RouteGroupInterface $group) {
+            $group->resource('products', new ProductsResource());
         });
                 
         $matchedRoute = $router->dispatch();
@@ -563,5 +578,18 @@ class RouterRouteResourceTest extends TestCase
             ],
             $router->url('products.display', ['id' => '5'])->translated()
         );
+    }
+    
+    public function testWithPassingControllerObject()
+    {
+        $router = $this->createRouter('GET', 'products');
+        
+        $controller = new ProductsResource();
+        
+        $router->resource('products', $controller);
+                
+        $route = $router->getRoute('products.index');
+        
+        $this->assertSame([$controller, 'index'], $route->getHandler());
     }
 }

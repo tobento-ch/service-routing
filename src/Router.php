@@ -305,11 +305,11 @@ class Router implements RouterInterface
      * Create a new RouteResource.
      * 
      * @param string $name The resource name
-     * @param string $controller The controller
+     * @param string|object $controller The controller
      * @param string $placeholder The placeholder name for the uri
      * @return RouteResourceInterface
      */
-    public function resource(string $name, string $controller, string $placeholder = 'id'): RouteResourceInterface
+    public function resource(string $name, string|object $controller, string $placeholder = 'id'): RouteResourceInterface
     {
         $this->addRoutable();
         

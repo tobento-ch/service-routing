@@ -80,14 +80,14 @@ class RouteResource implements RouteResourceInterface
      *
      * @param RouterInterface $router
      * @param string $name The resource name
-     * @param string $controller The controller
+     * @param string|object $controller The controller
      * @param string $placeholder The placeholder name for the uri
      * @param null|string $where The placeholder where constraint
      */        
     public function __construct(
         protected RouterInterface $router,
         protected string $name,
-        protected string $controller,
+        protected string|object $controller,
         protected string $placeholder = 'id',
         ?string $where = '[0-9]+'
     ){        

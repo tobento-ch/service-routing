@@ -37,7 +37,7 @@ class UrlGenerator implements UrlGeneratorInterface
      */    
     public function __construct(
         protected string $urlBase,
-        protected string $signatureKey,
+        #[\SensitiveParameter] protected string $signatureKey,
         protected string $signatureName = 'signature',
         protected string $expiresName = 'expires',
     ) {}

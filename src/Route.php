@@ -426,7 +426,7 @@ class Route implements RouteInterface, Arrayable
      * @param string $name
      * @param mixed $default
      * @return mixed
-     */    
+     */
     public function getParameter(string $name, mixed $default = null): mixed
     {
         return $this->parameters[$name] ?? $default;
@@ -436,7 +436,7 @@ class Route implements RouteInterface, Arrayable
      * Object to array
      *
      * @return array
-     */    
+     */
     public function toArray(): array
     {
         $parameters = $this->parameters;
@@ -455,7 +455,7 @@ class Route implements RouteInterface, Arrayable
      *
      * @param mixed $handler
      * @return string
-     */    
+     */
     protected function handlerToString(mixed $handler): string
     {
         $method = '__invoke';

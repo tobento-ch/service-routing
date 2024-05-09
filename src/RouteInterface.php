@@ -137,4 +137,11 @@ interface RouteInterface extends RouteI18MethodsInterface
      * @return mixed
      */    
     public function getParameter(string $name, mixed $default = null): mixed;
+    
+    /**
+     * Object to array
+     *
+     * @return array
+     */
+    public function toArray(): array;
 }

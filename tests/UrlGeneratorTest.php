@@ -23,8 +23,8 @@ use Tobento\Service\Routing\UrlException;
  */
 class UrlGeneratorTest extends TestCase
 {   
-    protected function createUrlGenerator(): UrlGeneratorInterface {
-        
+    protected function createUrlGenerator(): UrlGeneratorInterface
+    {
         return new UrlGenerator(
             'https://example.com',
             'a-random-32-character-secret-signature-key',
@@ -103,5 +103,29 @@ class UrlGeneratorTest extends TestCase
             'https://example.com/blog/foo/bar',
             $g->generate('blog/{path*}', ['path' => 'foo/bar'])
         );
-    }     
+    }
+    
+    public function testWithEmptyBaseUrl()
+    {
+        $g = new UrlGenerator('', 'a-random-32-character-secret-signature-key');
+        
+        $this->assertSame('blog', $g->generate('blog'));
+        $this->assertSame('/blog', $g->generate('/blog'));
+    }
+    
+    public function testWithSlashedOnlyBaseUrl()
+    {
+        $g = new UrlGenerator('/', 'a-random-32-character-secret-signature-key');
+        
+        $this->assertSame('/blog', $g->generate('blog'));
+        $this->assertSame('/blog', $g->generate('/blog'));
+    }
+    
+    public function testWithSlashedEndBaseUrl()
+    {
+        $g = new UrlGenerator('foo/', 'a-random-32-character-secret-signature-key');
+        
+        $this->assertSame('foo/blog', $g->generate('blog'));
+        $this->assertSame('foo/blog', $g->generate('/blog'));
+    }
 }

@@ -339,6 +339,9 @@ class UrlGenerator implements UrlGeneratorInterface
         
         //append $resolvedUri if not empty.
         if (!empty($resolvedUri)) {
+            if ($url === '') {
+                return $resolvedUri;
+            }
             
             $url = rtrim($url, '/');
             $resolvedUri = '/'.ltrim($resolvedUri, '/');

@@ -231,14 +231,14 @@ class Url implements UrlInterface
                             && isset($fallbacks[$locale])
                             && isset($translations[$fallbacks[$locale]])
                         ) {
-                            $this->parameters[$key] ??= $translations[$fallbacks[$locale]];
+                            $this->parameters[$key] = $translations[$fallbacks[$locale]];
                             continue;
                         }
                         
                         throw new TranslationException($this->route, 'Unable to generate url for locale.');
                     }
                     
-                    $this->parameters[$key] ??= $translations[$locale];
+                    $this->parameters[$key] = $translations[$locale];
                 }
             }
         }

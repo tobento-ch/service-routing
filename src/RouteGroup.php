@@ -195,10 +195,9 @@ class RouteGroup implements RouteGroupInterface
     
     /**
      * Create a new RouteGroup.
-     * 
-     * @param string $method The method such as 'GET'
+     *
      * @param string $uri The route uri such as 'foo/{id}'
-     * @param mixed $handler The handler if route is matching.
+     * @param Closure $callback
      * @return RouteGroupInterface
      */
     public function group(string $uri, Closure $callback): RouteGroupInterface

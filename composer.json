@@ -1,5 +1,6 @@
 {
     "name": "tobento/service-routing",
+    "version": "2.0",
     "type": "library",
     "description": "A flexible PHP router.",
     "keywords": [
@@ -20,24 +21,24 @@
     "minimum-stability": "dev",
     "prefer-stable": true,    
     "require": {
-        "php": ">=8.0",
-        "psr/http-message": "^1.0",
+        "php": ">=8.4",
+        "psr/http-message": "^2.0",
         "psr/http-server-handler": "^1.0",
         "psr/http-server-middleware": "^1.0",
-        "tobento/service-collection": "^1.0",
-        "tobento/service-support": "^1.0",
-        "tobento/service-uri": "^1.0",
-        "tobento/service-dater": "^1.0",
-        "tobento/service-autowire": "^1.0",
-        "tobento/service-middleware": "^1.0"
+        "tobento/service-collection": "^2.0",
+        "tobento/service-support": "^2.0",
+        "tobento/service-uri": "^2.0",
+        "tobento/service-dater": "^2.0",
+        "tobento/service-autowire": "^2.0",
+        "tobento/service-middleware": "^2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.0",
-        "tobento/service-container": "^1.0",
-        "nyholm/psr7": "^1.4",
-        "nyholm/psr7-server": "^1.0",
-        "laminas/laminas-httphandlerrunner": "^1.4"
+        "phpunit/phpunit": "^12.3",
+        "vimeo/psalm": "^6.13",
+        "tobento/service-container": "^2.0",
+        "nyholm/psr7": "^1.8",
+        "nyholm/psr7-server": "^1.1",
+        "laminas/laminas-httphandlerrunner": "^2.12"
     },   
     "autoload": {
         "psr-4": {

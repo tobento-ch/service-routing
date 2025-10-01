@@ -47,7 +47,7 @@ composer require tobento/service-routing
 
 ## Requirements
 
-- PHP 8.0 or greater
+- PHP 8.4 or greater
 
 ## Highlights
 
@@ -1066,13 +1066,13 @@ $router->getMatchedRouteHandler()->handle($matchedRoute);
 $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
 
 // create response.
-$response = (new \Nyholm\Psr7\Factory\Psr17Factory())->createResponse(200);
+$response = new \Nyholm\Psr7\Factory\Psr17Factory()->createResponse(200);
 
 // parse the route response.
 $response = $router->getRouteResponseParser()->parse($response, $routeResponse);
 
 // emitting response.
-(new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter()->emit($response);
 ```
 
 ### With PSR-15 Middleware
@@ -1093,7 +1093,7 @@ $router->setRequestAttributes(['uri', 'name', 'request_uri']);
 $container->set(MiddlewareDispatcherInterface::class, function($container) {
     
     return new MiddlewareDispatcher(
-        new FallbackHandler((new \Nyholm\Psr7\Factory\Psr17Factory())->createResponse(200)),
+        new FallbackHandler(new \Nyholm\Psr7\Factory\Psr17Factory()->createResponse(200)),
         new AutowiringMiddlewareFactory($container)
     );
 });
@@ -1107,12 +1107,12 @@ $middlewareDispatcher->add(\Tobento\Service\Routing\Middleware\PreRouting::class
 // ... more middlewares
 $middlewareDispatcher->add(\Tobento\Service\Routing\Middleware\Routing::class);
 
-$request = (new \Nyholm\Psr7\Factory\Psr17Factory())->createServerRequest('GET', 'https://example.com');
+$request = new \Nyholm\Psr7\Factory\Psr17Factory()->createServerRequest('GET', 'https://example.com');
 
 $response = $middlewareDispatcher->handle($request);
 
 // emitting response.
-(new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+new \Laminas\HttpHandlerRunner\Emitter\SapiEmitter()->emit($response);
 ```
 
 # Credits

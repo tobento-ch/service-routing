@@ -58,7 +58,7 @@ interface RequestDataInterface
     /**
      * Returns a new instance with the specified domain.
      *
-     * @param null|string $uri
+     * @param null|string $domain
      * @return static
      */    
     public function withDomain(null|string $domain): static;    

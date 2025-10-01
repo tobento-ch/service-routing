@@ -65,7 +65,7 @@ class Rule implements RuleInterface
     /**
      * Sets a matches rule.
      *
-     * @param Closure $callback function(string $value, array $parameters): bool {}
+     * @param Closure $matches function(string $value, array $parameters): bool {}
      * @return static $this
      */   
     public function matches(Closure $matches): static

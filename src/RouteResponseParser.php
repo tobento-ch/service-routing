@@ -72,6 +72,6 @@ class RouteResponseParser implements RouteResponseParserInterface
      */
     protected function convertToJson(mixed $data): string
     {
-        return json_encode($data);
+        return (string)json_encode($data);
     }
 }

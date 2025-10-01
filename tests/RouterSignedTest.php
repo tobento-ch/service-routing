@@ -163,7 +163,7 @@ class RouterSignedTest extends TestCase
         })->signed('unsubscribe');
         
         $this->assertSame(
-            'https://example.com/unsubscribe/5/6077d42cd0ced1625fa880d8535ef972622cac7bc667c38e86eb5a0be70f71d0/1634767200',
+            'https://example.com/unsubscribe/5/0630ffde0d7ed4f5449e976eeb02ce7275404d7997e05219c6c0fe636c76e66a/1634774400',
             (string) $router->url('unsubscribe', ['user' => 5])->sign('2021-10-21')
         );
     }
@@ -191,7 +191,7 @@ class RouterSignedTest extends TestCase
         })->signed('unsubscribe');
         
         $this->assertSame(
-            'https://example.com/unsubscribe/5?expires=1634767200&signature=ec3e188cd35b7ea6ea69cd8939868fbd4c89d78d510b35c7abe4f93b5764a138',
+            'https://example.com/unsubscribe/5?expires=1634774400&signature=fc4b1ce3138e2c1a6215c5108bb1551fa9ac1f702a305609eaae5d6888604d38',
             (string) $router->url('unsubscribe', ['user' => 5])->sign('2021-10-21', true)
         );
     }

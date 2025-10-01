@@ -63,7 +63,6 @@ interface UrlInterface extends Stringable
      * Get all translated urls for the given locales.
      *    
      * @param array<int, string> $locales ['de', 'en']
-     * @param bool $withQuery
      * @return array<string, string> ['de' => 'url']
      */
     public function translated(array $locales = []): array;

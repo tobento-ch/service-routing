@@ -29,10 +29,7 @@ use Tobento\Service\Routing\Test\Mock\Bar;
 use Tobento\Service\Routing\Test\Mock\Middleware;
 use Tobento\Service\Routing\Test\Mock\AnotherMiddleware;
 
-/**
- * RouterRouteParametersTest tests
- */
-class RouterRouteParametersTest extends TestCase
+class RouteTest extends TestCase
 {   
     protected function createRouter(
         string $method = 'GET',

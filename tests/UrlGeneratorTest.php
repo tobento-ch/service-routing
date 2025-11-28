@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tobento\Service\Routing\Test;
 
 use PHPUnit\Framework\TestCase;
+use Tobento\Service\Dater\Dater;
 use Tobento\Service\Routing\UrlGenerator;
 use Tobento\Service\Routing\UrlGeneratorInterface;
 use Tobento\Service\Routing\UrlException;
@@ -127,5 +128,96 @@ class UrlGeneratorTest extends TestCase
         
         $this->assertSame('foo/blog', $g->generate('blog'));
         $this->assertSame('foo/blog', $g->generate('/blog'));
+    }
+    
+    public function testSignedWithoutExpires()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2']);
+        
+        $this->assertStringStartsWith('https://example.com/foo/2/baz/', $url);
+        $this->assertSame(94, strlen($url));
+        
+        $this->assertTrue($g->hasValidSignature(uri: 'foo/{bar}/baz', uriRequest: substr($url, strlen('https://example.com/'))));
+    }
+    
+    public function testSignedWithoutExpiresFailsIfInvalidSignature()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2']);
+        
+        $this->assertFalse($g->hasValidSignature(
+            uri: 'foo/{bar}/baz',
+            uriRequest: substr($url, strlen('https://example.com/')).'a1',
+        ));
+    }
+    
+    public function testSignedWithExpires()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2'], expiration: new Dater()->addDays(10));
+        
+        $this->assertStringStartsWith('https://example.com/foo/2/baz/', $url);
+        $this->assertSame(105, strlen($url));
+        
+        $this->assertTrue($g->hasValidSignature(uri: 'foo/{bar}/baz', uriRequest: substr($url, strlen('https://example.com/'))));
+    }
+    
+    public function testSignedWithExpiresFailsIfExpired()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2'], expiration: new Dater()->subDays(10));
+
+        $this->assertFalse($g->hasValidSignature(uri: 'foo/{bar}/baz', uriRequest: substr($url, strlen('https://example.com/'))));
+    }
+    
+    public function testSignedWithQueryAndWithoutExpires()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2'], withQuery: true);
+        
+        $this->assertStringStartsWith('https://example.com/foo/2/baz?signature=', $url);
+        $this->assertSame(104, strlen($url));
+        
+        $this->assertTrue($g->hasValidSignature(uri: 'foo/{bar}/baz', uriRequest: substr($url, strlen('https://example.com/'))));
+    }
+    
+    public function testSignedWithQueryAndWithoutExpiresFailsIfInvalidSignature()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2'], withQuery: true);
+        
+        $this->assertFalse($g->hasValidSignature(
+            uri: 'foo/{bar}/baz',
+            uriRequest: substr($url, strlen('https://example.com/')).'a1',
+        ));
+    }
+    
+    public function testSignedWithQueryAndWithExpires()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2'], expiration: new Dater()->addDays(10), withQuery: true);
+        
+        $this->assertStringStartsWith('https://example.com/foo/2/baz?expires=', $url);
+        $this->assertStringContainsString('signature=', $url);
+        $this->assertSame(123, strlen($url));
+        
+        $this->assertTrue($g->hasValidSignature(uri: 'foo/{bar}/baz', uriRequest: substr($url, strlen('https://example.com/'))));
+    }
+    
+    public function testSignedWithQueryAndWithExpiresFailsIfExpired()
+    {
+        $g = $this->createUrlGenerator();
+        
+        $url = $g->generateSigned(uri: 'foo/{bar}/baz', parameters: ['bar' => '2'], expiration: new Dater()->subDays(10), withQuery: true);
+
+        $this->assertFalse($g->hasValidSignature(uri: 'foo/{bar}/baz', uriRequest: substr($url, strlen('https://example.com/'))));
     }
 }

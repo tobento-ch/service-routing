@@ -692,7 +692,7 @@ $url = (string) $router->url('unsubscribe', ['user' => 5])->sign();
 // https://example.com/basepath/unsubscribe/5/a0df83344703b26cd1f9cdcb05196082a6a7799e84b4748a5610d3256b556c55
 
 // generate a signed url which expires in 10 days.
-$url = (string) $router->url('unsubscribe', ['user' => 5])->sign((new Dater())->addDays(10));
+$url = (string) $router->url('unsubscribe', ['user' => 5])->sign(new Dater()->addDays(10));
 // https://example.com/basepath/unsubscribe/5/a0df83344703b26cd1f9cdcb05196082a6a7799e84b4748a5610d3256b556c55/1630752459
 
 // generate a signed url with no expiring and add signature data as query parameters.
@@ -700,7 +700,7 @@ $url = (string) $router->url('unsubscribe', ['user' => 5])->sign(withQuery: true
 // https://example.com/basepath/unsubscribe/5?signature=6d632a4a8981b1fb017ad6f82067370d6c98ddcd8c6d18cb4fc30c1d44e0f67e
 
 // generate a signed url which expires in 10 days and add signature data as query parameters.
-$url = (string) $router->url('unsubscribe', ['user' => 5])->sign((new Dater())->addDays(10), true);
+$url = (string) $router->url('unsubscribe', ['user' => 5])->sign(new Dater()->addDays(10), true);
 // https://example.com/basepath/unsubscribe/5?expires=1630752540&signature=6d632a4a8981b1fb017ad6f82067370d6c98ddcd8c6d18cb4fc30c1d44e0f67e
 ```
 

@@ -215,6 +215,7 @@ class UrlGenerator implements UrlGeneratorInterface
             // determine if last segment is expires parameter.
             if (
                 !is_null($expires)
+                && strlen($expires) === 10
                 && !is_null((new DateFormatter())->toDateTime('@'.$expires, fallback: null))
             ) {
                 $signature = $uriRequest->path()->getSegment($segmentsCount-1, '');
@@ -222,6 +223,7 @@ class UrlGenerator implements UrlGeneratorInterface
             } else {
                 $signature = $uriRequest->path()->getSegment($segmentsCount, '');
                 unset($segments[$segmentsCount-1]);
+                $expires = null;
             }
             
             $uriPath = $uriRequest->path()->withSegments($segments);           

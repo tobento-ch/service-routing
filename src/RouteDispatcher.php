@@ -20,6 +20,7 @@ use Tobento\Service\Routing\Constrainer\Rule;
 use Tobento\Service\Routing\Constrainer\RuleInterface;
 use Tobento\Service\Uri\UriRequest;
 use Tobento\Service\Autowire\Autowire;
+use Tobento\Service\Dater\DateFormatter;
 use Closure;
 
 /**
@@ -73,15 +74,36 @@ class RouteDispatcher implements RouteDispatcherInterface
         
         $this->uriRequest = null; // reset
             
-        foreach($router->getRoutes() as $route)
-        {
-            if (!is_null($matchedRoute = $this->routeMatches($requestData, $route)))
-            {
+        foreach($router->getRoutes() as $route) {
+            if (!is_null($matchedRoute = $this->routeMatches($requestData, $route))) {
                 if (
-                    $matchedRoute->hasParameter('signed')
+                    $matchedRoute->getParameter('signed')
                     && ! $router->getUrlGenerator()->hasValidSignature($matchedRoute->getUri(), $requestData->uri())
                 ) {            
                     throw new InvalidSignatureException($matchedRoute, 'Invalid Route Signature');
+                }
+                
+                // For signed routes: strip trailing signature/expires from the wildcard
+                // parameter so controllers receive the correct path value; otherwise any
+                // logic depending on that parameter will break.
+                if ($matchedRoute->hasParameter('signed')) {
+                    // 1. Detect wildcard parameter name from route URI
+                    $uri = $matchedRoute->getUri();
+                    $wildcardName = null;
+
+                    if (preg_match('/\{([^}]+)\*\}/', $uri, $m)) {
+                        $wildcardName = $m[1];
+                    }
+
+                    // 2. Clean only the wildcard parameter
+                    if ($wildcardName !== null) {
+                        $params = $matchedRoute->getParameter('request_parameters') ?? [];
+                        
+                        if (isset($params[$wildcardName])) {
+                            $params[$wildcardName] = $this->stripSignedSuffixFromPath($params[$wildcardName]);
+                            $matchedRoute->parameter('request_parameters', $params);
+                        }
+                    }
                 }
                 
                 return $matchedRoute;
@@ -351,7 +373,7 @@ class RouteDispatcher implements RouteDispatcherInterface
      * @param mixed $constraint The constraint such as '[a-z]+'
      * @param string $value The uri request segment value.
      * @return bool True on success, otherwise false.
-     */    
+     */
     protected function matchesQueryConstraint(mixed $constraint, string $value): bool
     {
         if (is_string($constraint) && !empty($constraint))
@@ -360,5 +382,61 @@ class RouteDispatcher implements RouteDispatcherInterface
         }
         
         return false; 
+    }
+    
+    /**
+     * Strips the trailing signed route suffix from a wildcard
+     * value stored in the route request parameters.
+     *
+     * This is used for signed routes where a wildcard segment
+     * captures the full path including the appended signature
+     * and expiration data, so that controllers receive only
+     * the clean path portion.
+     *
+     * @param string $path The wildcard value from request_parameters.
+     * @return string The cleaned wildcard value without the signed suffix.
+     */
+    protected function stripSignedSuffixFromPath(string $path): string
+    {
+        $path = trim($path, '/');
+        
+        if ($path === '') {
+            return '';
+        }
+        
+        $segments = explode('/', $path);
+        $count = count($segments);
+
+        $last = $segments[$count - 1];
+
+        // Detect expires (10-digit timestamp)
+        $isExpires =
+            ctype_digit($last)
+            && strlen($last) === 10
+            && new DateFormatter()->toDateTime('@'.$last, fallback: null) !== null;
+
+        if ($isExpires) {
+            // Remove expires
+            array_pop($segments);
+            $count--;
+
+            if ($count > 0) {
+                $sig = $segments[$count - 1];
+
+                // Signature: hex string, length >= 32 (future-proof)
+                if (ctype_xdigit($sig) && strlen($sig) >= 32) {
+                    array_pop($segments);
+                }
+            }
+
+            return implode('/', $segments);
+        }
+
+        // Signature-only case
+        if (ctype_xdigit($last) && strlen($last) >= 32) {
+            array_pop($segments);
+        }
+
+        return implode('/', $segments);
     }
 }

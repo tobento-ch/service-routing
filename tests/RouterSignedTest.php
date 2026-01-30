@@ -107,7 +107,7 @@ class RouterSignedTest extends TestCase
         $matchedRoute = $router->dispatch();
     }
     
-    public function testRouteSignedWithCustomResponse()
+    public function testRouteSignedWithCustomValidationPasses()
     {
         $router = $this->createRouter('GET', 'unsubscribe');
         
@@ -140,6 +140,39 @@ class RouterSignedTest extends TestCase
         );
     }
     
+    public function testRouteSignedWithCustomValidationFails()
+    {
+        $router = $this->createRouter('GET', 'unsubscribe');
+
+        $router->get('unsubscribe/{user}', function (RouterInterface $router, $user) {
+
+            $matchedRoute = $router->getMatchedRoute();
+            $requestUri   = $router->getRequestData()->uri();
+
+            // Custom validation logic
+            if (! $router->getUrlGenerator()->hasValidSignature($matchedRoute->getUri(), $requestUri)) {
+                return 'invalid';
+            }
+
+            return 'unsubscribe/'.$user;
+
+        })->signed('unsubscribe', validate: false);
+
+        // Create a valid signed URL
+        $url = (string) $router->url('unsubscribe', ['user' => 5])->sign(withQuery: true);
+
+        // Break the signature so it becomes invalid
+        $uri = str_replace('signature=', 'signature=broken', $url);
+        $uri = str_replace('https://example.com/', '', $uri);
+
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+
+        $this->assertSame('invalid', $routeResponse);
+    }
+
     public function testUrlSignWithNoExpiring()
     {
         $router = $this->createRouter('GET', 'unsubscribe');
@@ -275,5 +308,114 @@ class RouterSignedTest extends TestCase
             'unsubscribe/5',
             $routeResponse
         );
-    }    
+    }
+    
+    public function testRouteSignedWithWildcardUriSignatureIsCleaned()
+    {
+        $router = $this->createRouter('GET', 'file');
+        
+        $router->get('file/{id}/{path*}', function(RouterInterface $router, $id, $path) {
+            return $id.'='.$path;
+        })->signed(name: 'file', validate: true);
+        
+        $url = (string) $router->url('file', ['id' => 5, 'path' => 'foo/bar/baz'])->sign();
+        
+        $uri = str_replace('https://example.com/', '', $url);
+        
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('5=foo/bar/baz', $routeResponse);
+    }
+    
+    public function testRouteSignedWithWildcardUriSignatureAndExpirationIsCleaned()
+    {
+        $router = $this->createRouter('GET', 'file');
+        
+        $router->get('file/{id}/{path*}', function(RouterInterface $router, $id, $path) {
+            return $id.'='.$path;
+        })->signed(name: 'file', validate: true);
+        
+        $url = (string) $router->url('file', ['id' => 5, 'path' => 'foo/bar/baz'])->sign(expiration: time() + 3600);
+        
+        $uri = str_replace('https://example.com/', '', $url);
+        
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+        
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame('5=foo/bar/baz', $routeResponse);
+    }
+    
+    public function testRouteSignedWithWildcardUriInvalidSignatureThrows()
+    {
+        $this->expectException(InvalidSignatureException::class);
+
+        $router = $this->createRouter('GET', 'file');
+
+        $router->get('file/{id}/{path*}', function () {
+            return 'should-not-run';
+        })->signed(name: 'file', validate: true);
+
+        // Invalid signature + expiration in path
+        $uri = 'file/5/foo/bar/baz/invalid/invalid';
+
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+
+        $router->dispatch();
+    }
+    
+    public function testRouteSignedWithWildcardUriMissingExpirationThrows()
+    {
+        $this->expectException(InvalidSignatureException::class);
+
+        $router = $this->createRouter('GET', 'file');
+
+        $router->get('file/{id}/{path*}', function () {
+            return 'should-not-run';
+        })->signed(name: 'file', validate: true);
+
+        // Missing expiration segment
+        $uri = 'file/5/foo/bar/baz/abc123';
+
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+
+        $router->dispatch();
+    }
+    
+    public function testRouteSignedWithWildcardUriCustomValidationReceivesCleanedPath()
+    {
+        $router = $this->createRouter('GET', 'file');
+
+        $router->get('file/{id}/{path*}', function (RouterInterface $router, $id, $path) {
+
+            // Custom validation
+            $matched = $router->getMatchedRoute();
+            $uri = $router->getRequestData()->uri();
+
+            if (! $router->getUrlGenerator()->hasValidSignature($matched->getUri(), $uri)) {
+                return 'invalid';
+            }
+
+            return $id.'='.$path;
+
+        })->signed(name: 'file', validate: false);
+
+        $url = (string) $router->url('file', [
+            'id' => 5,
+            'path' => 'foo/bar/baz'
+        ])->sign();
+
+        $uri = str_replace('https://example.com/', '', $url);
+
+        $router->setRequestData($router->getRequestData()->withUri($uri));
+
+        $matched = $router->dispatch();
+        $response = $router->getRouteHandler()->handle($matched);
+
+        $this->assertSame('5=foo/bar/baz', $response);
+    }
 }

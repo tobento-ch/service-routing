@@ -200,12 +200,11 @@ interface RouterInterface extends RouteMethodsInterface
      *
      * @param string $name The route name.
      * @param array $parameters The paramters to build the url.
-     *
-     * @throws UrlException
-     *
+     * @param bool $throw
      * @return UrlInterface
+     * @throws UrlException
      */    
-    public function url(string $name, array $parameters = []): UrlInterface;
+    public function url(string $name, array $parameters = [], bool $throw = true): UrlInterface;
     
     /**
      * Clear

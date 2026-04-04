@@ -371,16 +371,22 @@ class Router implements RouterInterface
      *
      * @param string $name The route name.
      * @param array $parameters The paramters to build the url.
-     *
-     * @throws UrlException
-     *
+     * @param bool $throw
      * @return UrlInterface
+     * @throws UrlException
      */    
-    public function url(string $name, array $parameters = []): UrlInterface
+    public function url(string $name, array $parameters = [], bool $throw = true): UrlInterface
     {
         $this->addRoutable();
         
-        return $this->routeFactory->createUrl($this, $name, $parameters);
+        try {
+            return $this->routeFactory->createUrl($this, $name, $parameters);
+        } catch (UrlException $e) {
+            if ($throw) {
+                throw $e;
+            }
+            return new NullUrl($name, $parameters);
+        }
     }
     
     /**

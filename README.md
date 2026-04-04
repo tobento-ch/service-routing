@@ -270,12 +270,17 @@ $router->get('blog', [Controller::class, 'method'])
 
 ### Url Generation
 
-**Generating url from named routes:**
+The router provides a `url()` method for generating URLs from named routes:
 
 ```php
+use Tobento\Service\Routing\UrlInterface;
+
 $router->get('blog', [Controller::class, 'method'])
        ->name('blog');
-       
+
+var_dump($router->url('blog') instanceof UrlInterface);
+// bool(true)
+
 $blogUrl = $router->url('blog')->get();
 $blogUrl = (string) $router->url('blog');
 
@@ -285,6 +290,36 @@ $router->get('blog/edit/{id}', [Controller::class, 'method'])
        
 $blogUrl = $router->url('blog.edit', ['id' => 5])->get();
 ```
+
+**Throwing vs. Non-Throwing Behavior**
+
+By default, the router throws a `UrlException` if the route name does not exist:
+
+```php
+use Tobento\Service\Routing\UrlException;
+
+$router->url('missing.route'); // throws UrlException
+```
+
+**Safe Mode (throw: false)**
+
+You may disable exceptions by passing `throw: false`:
+
+```php
+use Tobento\Service\Routing\NullUrl;
+
+$url = $router->url(name: 'missing.route', parameters: [], throw: false);
+```
+
+In this case, the router returns an instance of `NullUrl`, which also implements `UrlInterface`.
+
+A `NullUrl`:
+- can be safely cast to a string (resulting in an empty string)
+- provides the attempted route name via `name()`
+- provides the attempted parameters via `parameters()`
+- supports all `UrlInterface` methods with safe defaults
+
+This is useful when generating links in views, notifications, or emails where the route may not exist in all application contexts.
 
 ### More Routes methods
 

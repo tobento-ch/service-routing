@@ -14,10 +14,12 @@ declare(strict_types=1);
 namespace Tobento\Service\Routing\Test;
 
 use PHPUnit\Framework\TestCase;
+use Tobento\Service\Routing\NullUrl;
 use Tobento\Service\Routing\Router;
 use Tobento\Service\Routing\RouterInterface;
 use Tobento\Service\Routing\RequestData;
 use Tobento\Service\Routing\RequestDataInterface;
+use Tobento\Service\Routing\Url;
 use Tobento\Service\Routing\UrlGenerator;
 use Tobento\Service\Routing\UrlGeneratorInterface;
 use Tobento\Service\Routing\UrlInterface;
@@ -266,5 +268,30 @@ class RouterTest extends TestCase
         });
         
         $router->url('blog');
-    }     
+    }
+    
+    public function testUrlMethodReturnsNullUrlWhenThrowIsFalse()
+    {
+        $router = $this->createRouter();
+
+        // No route named "blog"
+        $url = $router->url(name: 'blog', parameters: ['id' => 5], throw: false);
+
+        $this->assertInstanceOf(NullUrl::class, $url);
+        $this->assertSame('blog', $url->name());
+        $this->assertSame(['id' => 5], $url->parameters());
+    }
+    
+    public function testUrlMethodReturnsUrlWhenRouteExistsEvenWithThrowFalse()
+    {
+        $router = $this->createRouter();
+
+        $router->get('blog', function () {
+            return 'blog';
+        })->name('blog');
+
+        $url = $router->url(name: 'blog', parameters: ['id' => 5], throw: false);
+
+        $this->assertInstanceOf(Url::class, $url);
+    }
 }

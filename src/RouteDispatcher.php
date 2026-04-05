@@ -185,8 +185,7 @@ class RouteDispatcher implements RouteDispatcherInterface
         
         $this->uriRequest = $this->uriRequest ?: new UriRequest($requestData->uri());
             
-        if ($this->uriRequest->hasQuery())
-        {
+        if ($this->uriRequest->hasQuery()) {
             if ($route->getParameter('query') === null) {
                 return null;
             } elseif ($route->getParameter('query') === '*') {
@@ -220,10 +219,8 @@ class RouteDispatcher implements RouteDispatcherInterface
         $route->parameter('request_domain', $requestData->domain());
         
         // check for "matches" parameter.
-        if (is_array($route->getParameter('matches')))
-        {
-            foreach($route->getParameter('matches') as $callback)
-            {
+        if (is_array($route->getParameter('matches'))) {
+            foreach($route->getParameter('matches') as $callback) {
                 $route = $this->autowire->call($callback, ['route' => $route]);
             
                 if ($route === null) {
@@ -251,9 +248,9 @@ class RouteDispatcher implements RouteDispatcherInterface
         }
         
         $regex = $this->buildRegexFromRouteUri($routeUri, $constraints);
-        
+
         $matched = (bool) preg_match($regex, '/'.$requestUri, $matches);
-                
+        
         if ($matched === false) {
             return [false, []];
         }
@@ -261,10 +258,8 @@ class RouteDispatcher implements RouteDispatcherInterface
         $params = $this->extractParametersFromMatches($matches);
         
         // check for constraint matching rule.
-        if (!empty($params) && !is_null($this->constrainer))
-        {
-            foreach($params as $name => $value)
-            {
+        if (!empty($params) && !is_null($this->constrainer)) {
+            foreach($params as $name => $value) {
                 if (
                     isset($constraints[$name])
                     && $value !== ''
@@ -284,63 +279,59 @@ class RouteDispatcher implements RouteDispatcherInterface
      * @param string $uri The route uri '{foo}/bar'
      * @param array<mixed> $constraints The constraints
      * @return string
-     */    
+     */
     protected function buildRegexFromRouteUri(string $uri, array $constraints): string
     {
         $regex = '';
-        
-        foreach(explode('/', $uri) as $segment)
-        {
+
+        foreach (explode('/', $uri) as $segment) {
+
             $static = true;
             $rule = '[^/]+';
             $optional = '';
             $wildcard = false;
-            
-            if (substr($segment, 0, 1) === '{')
-            {
+
+            // dynamic segment: {id}
+            if (str_starts_with($segment, '{')) {
                 $static = false;
                 $segment = ltrim($segment, '{');
                 $segment = rtrim($segment, '}');
             }
-            
-            // optional
-            if (substr($segment, 0, 1) === '?')
-            {
+
+            // optional: ?id
+            if (str_starts_with($segment, '?')) {
                 $segment = ltrim($segment, '?');
                 $optional = '?';
             }
-            
-            // wildcard
-            if (substr($segment, -1) === '*')
-            {
+
+            // wildcard: id*
+            if (str_ends_with($segment, '*')) {
                 $segment = rtrim($segment, '*');
                 $rule = '[^?]+';
                 $wildcard = true;
             }
-            
-            // constraints regex.
-            if (isset($constraints[$segment]))
-            {
+
+            // apply constraint
+            if (isset($constraints[$segment])) {
                 $rule = $this->constrainer?->regex($constraints[$segment]) ?: $rule;
             }
             
             $name = '?<'.$segment.'>';
             
-            if ($static)
-            {
+            // static segment
+            if ($static) {
                 $name = '';
                 $rule = $segment;
             }            
             
             $regex .= '('.$name.'/'.$rule.')'.$optional;
-            
-            if ($wildcard)
-            {
+
+            if ($wildcard) {
                 break;
             }
         }
 
-        return '#^'.$regex.'$#';        
+        return '#^' . $regex . '$#u';
     }
 
     /**
@@ -352,20 +343,20 @@ class RouteDispatcher implements RouteDispatcherInterface
     protected function extractParametersFromMatches(array $matches): array
     {        
         $filtered = [];
-        
+
         foreach($matches as $name => $value)
         {
             if (!is_string($name)) {
                 continue;
             }
-
+            
             $value = ltrim($value, '/');
             
             $filtered[$name] = $value;
         }
         
         return $filtered;
-    }   
+    }
     
     /**
      * Check if constraint matches query.

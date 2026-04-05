@@ -187,6 +187,23 @@ class RouterRouteUriTest extends TestCase
             $routeResponse
         );
     }
+    
+    public function testUriOptionalParameterAtBeginning()
+    {
+        $router = $this->createRouter('GET', 'de/shop');
+        
+        $router->route('GET', '{?locale}/shop', function($locale) {
+            return $locale;
+        });
+
+        $matchedRoute = $router->dispatch();
+        $routeResponse = $router->getRouteHandler()->handle($matchedRoute);
+        
+        $this->assertSame(
+            'de',
+            $routeResponse
+        );
+    }
 
     public function testUriMultipleOptionalParameter()
     {
